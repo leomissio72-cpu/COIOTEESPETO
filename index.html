@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+l<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -416,14 +416,236 @@
             color: white;
             border-color: var(--secondary);
         }
+        
+        /* Menu Hamburguer para dispositivos móveis */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        /* Filtros do Dashboard */
+        .dashboard-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .dashboard-filters .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        /* QR Code e PIX */
+        .qr-code-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .qr-code {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+        }
+        
+        .pix-code {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .pix-code-text {
+            font-family: monospace;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+            margin: 15px 0;
+        }
+        
+        .copy-btn {
+            margin-top: 10px;
+        }
+        
+        /* Media Queries para Responsividade */
+        
+        /* Tablets (768px a 1024px) */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .dashboard-filters {
+                flex-direction: column;
+            }
+        }
+        
+        /* Celulares (até 767px) */
+        @media (max-width: 767px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .logo {
+                margin-bottom: 10px;
+                font-size: 20px;
+            }
+            
+            nav {
+                width: 100%;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                display: none;
+                width: 100%;
+            }
+            
+            nav ul.show {
+                display: flex;
+            }
+            
+            nav ul li {
+                margin: 5px 0;
+                width: 100%;
+            }
+            
+            nav ul li a {
+                display: block;
+                padding: 10px;
+                text-align: center;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                position: absolute;
+                top: 15px;
+                right: 20px;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .category-buttons {
+                gap: 5px;
+            }
+            
+            .category-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .comanda-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .comanda-item div:last-child {
+                align-self: flex-end;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            h3 {
+                font-size: 18px;
+            }
+            
+            .dashboard-filters {
+                flex-direction: column;
+            }
+        }
+        
+        /* Notebooks (1025px e acima) - Já está otimizado no CSS base */
     </style>
 </head>
 <body>
     <header>
         <div class="container header-content">
             <div class="logo">Sistema Restaurante</div>
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
             <nav>
-                <ul>
+                <ul id="navMenu">
                     <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
                     <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
                     <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
@@ -437,6 +659,47 @@
         <!-- Dashboard -->
         <section id="dashboard" class="section active">
             <h1>Dashboard</h1>
+            
+            <!-- Filtros do Dashboard -->
+            <div class="card">
+                <h2>Filtros</h2>
+                <div class="dashboard-filters">
+                    <div class="form-group">
+                        <label for="filtro-produto">Produto</label>
+                        <select id="filtro-produto">
+                            <option value="">Todos os produtos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-categoria">Categoria</label>
+                        <select id="filtro-categoria">
+                            <option value="">Todas as categorias</option>
+                            <option value="Espeto">Espeto</option>
+                            <option value="Copos">Copos</option>
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Facas">Facas</option>
+                            <option value="Itens para Churrasco">Itens para Churrasco</option>
+                            <option value="Espeto Congelado">Espeto Congelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-data-inicio">Data Início</label>
+                        <input type="date" id="filtro-data-inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-data-fim">Data Fim</label>
+                        <input type="date" id="filtro-data-fim">
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" id="aplicar-filtros">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <div class="stat-value" id="total-vendas">R$ 0,00</div>
@@ -560,18 +823,26 @@
             <h1>Relatórios de Vendas</h1>
             
             <div class="card">
-                <div class="form-group">
-                    <label for="data-inicio">Data de Início</label>
-                    <input type="date" id="data-inicio">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="data-inicio">Data de Início</label>
+                        <input type="date" id="data-inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="data-fim">Data de Fim</label>
+                        <input type="date" id="data-fim">
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="data-fim">Data de Fim</label>
-                    <input type="date" id="data-fim">
+                <div class="form-row">
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="filtrar-relatorio">Filtrar</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" id="exportar-relatorio">Exportar para CSV</button>
+                    </div>
                 </div>
-                
-                <button class="btn btn-primary" id="filtrar-relatorio">Filtrar</button>
-                <button class="btn btn-success" id="exportar-relatorio">Exportar para CSV</button>
             </div>
             
             <div class="card">
@@ -599,7 +870,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Adicionar Itens à Comanda</h3>
-                <button class="close-btn">&times;</button>
+                <button class="btn btn-primary" id="salvar-fechar-comanda">OK</button>
             </div>
             
             <div class="category-filter">
@@ -659,6 +930,16 @@
                 </div>
             </div>
             
+            <!-- Código PIX (aparece apenas quando PIX é selecionado) -->
+            <div id="pix-code-container" class="pix-code hidden">
+                <h4>Pagamento via PIX</h4>
+                <p>Use o código abaixo para realizar o pagamento:</p>
+                <div class="pix-code-text" id="pix-code-text">
+                    00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-426614174000520400005303986540510.005802BR5913NOMEDOLOJA6008CIDADE62190515RP1234567890126304
+                </div>
+                <button class="btn btn-secondary copy-btn" id="copiar-pix">Copiar Código PIX</button>
+            </div>
+            
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button class="btn btn-success" id="confirmar-pagamento" style="flex: 1;">Confirmar Pagamento</button>
                 <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
@@ -693,9 +974,13 @@
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                 document.getElementById(sectionId).classList.add('active');
                 
+                // Fechar menu mobile se estiver aberto
+                document.getElementById('navMenu').classList.remove('show');
+                
                 // Atualizar dados específicos da seção
                 if (sectionId === 'dashboard') {
                     atualizarDashboard();
+                    carregarFiltrosProdutos();
                 } else if (sectionId === 'comandas') {
                     carregarComandas();
                 } else if (sectionId === 'produtos') {
@@ -706,11 +991,22 @@
             });
         });
 
+        // Menu mobile toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('show');
+        });
+
         // Variáveis globais
         let comandaAtual = null;
         let formaPagamento = null;
         let produtoSelecionado = null;
         let categoriaAtual = '';
+        let filtrosDashboard = {
+            produto: '',
+            categoria: '',
+            dataInicio: '',
+            dataFim: ''
+        };
 
         // Categorias disponíveis
         const categorias = [
@@ -748,6 +1044,24 @@
             });
         }
 
+        function carregarFiltrosProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const filtroProduto = document.getElementById('filtro-produto');
+            
+            // Limpar opções existentes (mantendo a primeira)
+            while (filtroProduto.children.length > 1) {
+                filtroProduto.removeChild(filtroProduto.lastChild);
+            }
+            
+            // Adicionar produtos
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                option.textContent = produto.nome;
+                filtroProduto.appendChild(option);
+            });
+        }
+
         function adicionarProduto() {
             const nome = document.getElementById('nome-produto').value;
             const categoria = document.getElementById('categoria').value;
@@ -760,13 +1074,15 @@
             }
             
             const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            produtos.push({
+            const novoProduto = {
                 nome,
                 categoria,
                 preco,
                 descricao,
                 id: Date.now()
-            });
+            };
+            
+            produtos.push(novoProduto);
             
             localStorage.setItem('produtos', JSON.stringify(produtos));
             
@@ -778,6 +1094,7 @@
             
             mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
             carregarProdutos();
+            carregarFiltrosProdutos();
             atualizarDashboard();
         }
 
@@ -787,6 +1104,7 @@
                 produtos.splice(index, 1);
                 localStorage.setItem('produtos', JSON.stringify(produtos));
                 carregarProdutos();
+                carregarFiltrosProdutos();
                 atualizarDashboard();
             }
         }
@@ -877,9 +1195,7 @@
             document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(index);
             document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(index);
             document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(index);
-            
-            // Fechar modal
-            document.querySelector('#modal-comanda .close-btn').onclick = () => {
+            document.getElementById('salvar-fechar-comanda').onclick = () => {
                 modal.style.display = 'none';
                 carregarComandas();
                 atualizarDashboard();
@@ -994,14 +1310,32 @@
                 option.classList.remove('selected');
             });
             
+            // Esconder código PIX inicialmente
+            document.getElementById('pix-code-container').classList.add('hidden');
+            
             // Configurar eventos de seleção de pagamento
             document.querySelectorAll('.payment-option').forEach(option => {
                 option.addEventListener('click', function() {
                     document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
                     formaPagamento = this.getAttribute('data-payment');
+                    
+                    // Mostrar código PIX se selecionado
+                    if (formaPagamento === 'pix') {
+                        document.getElementById('pix-code-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('pix-code-container').classList.add('hidden');
+                    }
                 });
             });
+            
+            // Configurar evento para copiar código PIX
+            document.getElementById('copiar-pix').onclick = function() {
+                const pixCode = document.getElementById('pix-code-text').textContent;
+                navigator.clipboard.writeText(pixCode).then(function() {
+                    alert('Código PIX copiado para a área de transferência!');
+                });
+            };
             
             // Configurar eventos dos botões
             document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
@@ -1330,11 +1664,48 @@
         }
 
         // Funções para dashboard
+        function aplicarFiltrosDashboard() {
+            // Capturar valores dos filtros
+            filtrosDashboard.produto = document.getElementById('filtro-produto').value;
+            filtrosDashboard.categoria = document.getElementById('filtro-categoria').value;
+            filtrosDashboard.dataInicio = document.getElementById('filtro-data-inicio').value;
+            filtrosDashboard.dataFim = document.getElementById('filtro-data-fim').value;
+            
+            // Atualizar dashboard com filtros
+            atualizarDashboard();
+        }
+
         function atualizarDashboard() {
             // Estatísticas gerais
             const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            
+            // Aplicar filtros nas vendas
+            if (filtrosDashboard.dataInicio) {
+                vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
+            }
+            
+            if (filtrosDashboard.dataFim) {
+                const fim = new Date(filtrosDashboard.dataFim);
+                fim.setDate(fim.getDate() + 1);
+                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+            }
+            
+            if (filtrosDashboard.categoria) {
+                vendas = vendas.filter(venda => 
+                    venda.itens.some(item => {
+                        const produto = produtos.find(p => p.id === item.id);
+                        return produto && produto.categoria === filtrosDashboard.categoria;
+                    })
+                );
+            }
+            
+            if (filtrosDashboard.produto) {
+                vendas = vendas.filter(venda => 
+                    venda.itens.some(item => item.id.toString() === filtrosDashboard.produto)
+                );
+            }
             
             // Total em vendas
             const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
@@ -1435,9 +1806,11 @@
             document.getElementById('criar-comanda').addEventListener('click', criarComanda);
             document.getElementById('filtrar-relatorio').addEventListener('click', carregarRelatorios);
             document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
+            document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
             
             // Carregar dados iniciais
             carregarProdutos();
+            carregarFiltrosProdutos();
             carregarComandas();
             carregarRelatorios();
             atualizarDashboard();
@@ -1449,6 +1822,10 @@
             
             document.getElementById('data-inicio').value = dataInicio.toISOString().split('T')[0];
             document.getElementById('data-fim').value = dataFim.toISOString().split('T')[0];
+            
+            // Configurar datas padrão para os filtros do dashboard
+            document.getElementById('filtro-data-inicio').value = dataInicio.toISOString().split('T')[0];
+            document.getElementById('filtro-data-fim').value = dataFim.toISOString().split('T')[0];
         });
     </script>
 </body>
