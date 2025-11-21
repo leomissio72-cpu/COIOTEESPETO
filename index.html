@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -486,6 +486,17 @@ l<!DOCTYPE html>
             margin-top: 10px;
         }
         
+        /* Botões de ação na tabela */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-buttons .btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
         /* Media Queries para Responsividade */
         
         /* Tablets (768px a 1024px) */
@@ -514,6 +525,10 @@ l<!DOCTYPE html>
             }
             
             .dashboard-filters {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
                 flex-direction: column;
             }
         }
@@ -628,6 +643,10 @@ l<!DOCTYPE html>
             }
             
             .dashboard-filters {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
                 flex-direction: column;
             }
         }
@@ -798,7 +817,14 @@ l<!DOCTYPE html>
                     <textarea id="descricao" rows="3" placeholder="Descrição do produto"></textarea>
                 </div>
                 
-                <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
@@ -1007,6 +1033,7 @@ l<!DOCTYPE html>
             dataInicio: '',
             dataFim: ''
         };
+        let produtoEmEdicao = null;
 
         // Categorias disponíveis
         const categorias = [
@@ -1037,7 +1064,10 @@ l<!DOCTYPE html>
                     <td>${produto.categoria}</td>
                     <td>R$ ${produto.preco.toFixed(2)}</td>
                     <td>
-                        <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
+                        <div class="action-buttons">
+                            <button class="btn btn-warning" onclick="editarProduto(${index})">Editar</button>
+                            <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
+                        </div>
                     </td>
                 `;
                 listaProdutos.appendChild(tr);
@@ -1074,15 +1104,32 @@ l<!DOCTYPE html>
             }
             
             const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const novoProduto = {
-                nome,
-                categoria,
-                preco,
-                descricao,
-                id: Date.now()
-            };
             
-            produtos.push(novoProduto);
+            if (produtoEmEdicao !== null) {
+                // Modo edição - atualizar produto existente
+                produtos[produtoEmEdicao] = {
+                    ...produtos[produtoEmEdicao],
+                    nome,
+                    categoria,
+                    preco,
+                    descricao
+                };
+                
+                mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
+                cancelarEdicao();
+            } else {
+                // Modo adição - adicionar novo produto
+                const novoProduto = {
+                    nome,
+                    categoria,
+                    preco,
+                    descricao,
+                    id: Date.now()
+                };
+                
+                produtos.push(novoProduto);
+                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+            }
             
             localStorage.setItem('produtos', JSON.stringify(produtos));
             
@@ -1092,10 +1139,41 @@ l<!DOCTYPE html>
             document.getElementById('preco').value = '';
             document.getElementById('descricao').value = '';
             
-            mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
             carregarProdutos();
             carregarFiltrosProdutos();
             atualizarDashboard();
+        }
+
+        function editarProduto(index) {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const produto = produtos[index];
+            
+            // Preencher formulário com dados do produto
+            document.getElementById('nome-produto').value = produto.nome;
+            document.getElementById('categoria').value = produto.categoria;
+            document.getElementById('preco').value = produto.preco;
+            document.getElementById('descricao').value = produto.descricao || '';
+            
+            // Alterar para modo edição
+            produtoEmEdicao = index;
+            document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
+            document.getElementById('cancelar-edicao').classList.remove('hidden');
+            
+            // Rolar para o formulário
+            document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            // Limpar formulário
+            document.getElementById('nome-produto').value = '';
+            document.getElementById('categoria').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('descricao').value = '';
+            
+            // Voltar para modo adição
+            produtoEmEdicao = null;
+            document.getElementById('adicionar-produto').textContent = 'Adicionar Produto';
+            document.getElementById('cancelar-edicao').classList.add('hidden');
         }
 
         function excluirProduto(index) {
@@ -1106,6 +1184,11 @@ l<!DOCTYPE html>
                 carregarProdutos();
                 carregarFiltrosProdutos();
                 atualizarDashboard();
+                
+                // Se estava editando o produto excluído, cancelar a edição
+                if (produtoEmEdicao === index) {
+                    cancelarEdicao();
+                }
             }
         }
 
@@ -1803,6 +1886,7 @@ l<!DOCTYPE html>
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar eventos
             document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
+            document.getElementById('cancelar-edicao').addEventListener('click', cancelarEdicao);
             document.getElementById('criar-comanda').addEventListener('click', criarComanda);
             document.getElementById('filtrar-relatorio').addEventListener('click', carregarRelatorios);
             document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
