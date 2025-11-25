@@ -1,1907 +1,359 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Restaurante</title>
+  <head>
+    <!-- ========== ESSENTIALS ========== -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     
+    <!-- ========== SEO & META TAGS ========== -->
+    <title>Coiote BBQ - Sistema de Gestão de Restaurante</title>
+    <meta name="title" content="Coiote BBQ - Sistema de Gestão de Restaurante" />
+    <meta name="description" content="Sistema profissional de gestão para restaurantes com suporte a múltiplas formas de pagamento, relatórios avançados, auditoria e analytics." />
+    <meta name="keywords" content="restaurante, gestão, churrascaria, sistema POS, pedidos, pagamentos, relatórios, auditoria" />
+    <meta name="author" content="Coiote BBQ" />
+    <meta name="copyright" content="© 2025 Coiote BBQ. Todos os direitos reservados." />
+    <meta name="language" content="Portuguese" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- ========== OPEN GRAPH (Facebook, LinkedIn) ========== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://coiote-bbq.com" />
+    <meta property="og:title" content="Coiote BBQ - Sistema de Gestão de Restaurante" />
+    <meta property="og:description" content="Sistema profissional de gestão para restaurantes com suporte a múltiplas formas de pagamento, relatórios avançados, auditoria e analytics." />
+    <meta property="og:image" content="/icon.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Coiote BBQ" />
+    <meta property="og:locale" content="pt_BR" />
+    
+    <!-- ========== TWITTER CARD ========== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@replit" />
+    <meta name="twitter:creator" content="@coiotabbq" />
+    <meta name="twitter:title" content="Coiote BBQ - Sistema de Gestão de Restaurante" />
+    <meta name="twitter:description" content="Sistema profissional de gestão para restaurantes com suporte a múltiplas formas de pagamento, relatórios avançados, auditoria e analytics." />
+    <meta name="twitter:image" content="/icon.png" />
+    <meta name="twitter:domain" content="coiote-bbq.com" />
+    
+    <!-- ========== APP CHROME & MOBILE ========== -->
+    <meta name="theme-color" content="#000000" />
+    <meta name="msapplication-TileColor" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Coiote BBQ" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+    
+    <!-- ========== LINKS & ICONS ========== -->
+    <link rel="canonical" href="https://coiote-bbq.com" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/icon.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/icon.png" sizes="180x180" />
+    <link rel="apple-touch-startup-image" href="/icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- ========== FONTS (Google Fonts) ========== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    
+    <!-- ========== PRELOAD CRITICAL RESOURCES ========== -->
+    <link rel="preload" href="/src/main.tsx" as="script" type="module" />
+    
+    <!-- ========== DNS PREFETCH ========== -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <!-- ========== CSS VARIABLES & STYLES ========== -->
     <style>
+      :root {
+        --color-primary: #000000;
+        --color-secondary: #ff6b00;
+        --color-background: #ffffff;
+        --color-foreground: #000000;
+        --color-border: #e5e5e5;
+        --color-success: #22c55e;
+        --color-warning: #f59e0b;
+        --color-error: #ef4444;
+        --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @media (prefers-color-scheme: dark) {
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
+          --color-background: #0a0a0a;
+          --color-foreground: #ffffff;
+          --color-border: #2a2a2a;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        line-height: 1.6;
+        letter-spacing: 0.5px;
+        overflow-x: hidden;
+      }
+
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ========== LOADING STATE ========== */
+      .loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background) 100%);
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--color-border);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .loading-text {
+        font-family: var(--font-heading);
+        font-size: 16px;
+        color: var(--color-foreground);
+        font-weight: 500;
+        opacity: 0.7;
+      }
+
+      .loading-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* ========== ACCESSIBILITY ========== */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      /* ========== FOCUS VISIBLE ========== */
+      *:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+
+      /* ========== PRINT STYLES ========== */
+      @media print {
         body {
-            background-color: #f5f7fa;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 20px;
-        }
-        
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        
-        nav ul li a:hover, nav ul li a.active {
-            background-color: rgba(255,255,255,0.1);
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        h1, h2, h3 {
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        
-        .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary);
-            color: white;
-        }
-        
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .btn-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        table th, table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        .section {
-            display: none;
-        }
-        
-        .section.active {
-            display: block;
-        }
-        
-        .alert {
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 15px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--secondary);
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: #777;
-        }
-        
-        .comanda-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .comanda-total {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 15px;
-            text-align: right;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #777;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .payment-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .payment-option {
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .payment-option:hover {
-            border-color: var(--secondary);
-            background-color: #f8f9fa;
-        }
-        
-        .payment-option.selected {
-            border-color: var(--success);
-            background-color: #e8f5e8;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .badge-success {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .badge-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-        
-        .badge-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .badge-info {
-            background-color: var(--secondary);
-            color: white;
-        }
-        
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-        }
-        
-        .product-item {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .product-item:hover {
-            background-color: #f8f9fa;
-            border-color: var(--secondary);
-        }
-        
-        .product-item.selected {
-            background-color: #e8f5e8;
-            border-color: var(--success);
-        }
-        
-        .product-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .product-price {
-            color: var(--success);
-            font-weight: bold;
-        }
-        
-        .category-filter {
-            margin-bottom: 15px;
-        }
-        
-        .category-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 5px;
-        }
-        
-        .category-btn {
-            padding: 6px 12px;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-        
-        .category-btn:hover {
-            background-color: #e1e1e1;
-        }
-        
-        .category-btn.active {
-            background-color: var(--secondary);
-            color: white;
-            border-color: var(--secondary);
-        }
-        
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 30px;
-            height: 21px;
-            cursor: pointer;
-        }
-        
-        .menu-toggle span {
-            display: block;
-            height: 3px;
-            width: 100%;
-            background-color: white;
-            border-radius: 3px;
-            transition: all 0.3s;
-        }
-        
-        .dashboard-filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .dashboard-filters .form-group {
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        .qr-code-container {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .qr-code-container img {
-            max-width: 300px;
-            width: 100%;
-            height: auto;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            background-color: white;
-        }
-        
-        .pix-code {
-            text-align: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-        
-        .pix-code-text {
-            background-color: white;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            word-break: break-all;
-            margin: 10px 0;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .action-buttons .btn {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        
-        @media (max-width: 1024px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .dashboard-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .product-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-            
-            .dashboard-filters {
-                flex-direction: column;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .logo {
-                margin-bottom: 10px;
-                font-size: 20px;
-            }
-            
-            nav {
-                width: 100%;
-            }
-            
-            nav ul {
-                flex-direction: column;
-                display: none;
-                width: 100%;
-            }
-            
-            nav ul.show {
-                display: flex;
-            }
-            
-            nav ul li {
-                margin: 5px 0;
-                width: 100%;
-            }
-            
-            nav ul li a {
-                display: block;
-                padding: 10px;
-                text-align: center;
-            }
-            
-            .menu-toggle {
-                display: flex;
-                position: absolute;
-                top: 15px;
-                right: 20px;
-            }
-            
-            .dashboard-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .stat-card {
-                padding: 10px;
-            }
-            
-            .stat-value {
-                font-size: 20px;
-            }
-            
-            .card {
-                padding: 15px;
-            }
-            
-            .product-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 8px;
-            }
-            
-            .payment-options {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-content {
-                width: 95%;
-                padding: 15px;
-            }
-            
-            .category-buttons {
-                gap: 5px;
-            }
-            
-            .category-btn {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-            
-            .comanda-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .comanda-item div:last-child {
-                align-self: flex-end;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            h2 {
-                font-size: 20px;
-            }
-            
-            h3 {
-                font-size: 18px;
-            }
-            
-            .dashboard-filters {
-                flex-direction: column;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
+          background: white;
+          color: black;
+        }
+      }
+
+      /* ========== RESPONSIVE ========== */
+      @media (max-width: 640px) {
+        html {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 1024px) {
+        html {
+          font-size: 15px;
+        }
+      }
+
+      /* ========== PREFERS REDUCED MOTION ========== */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     </style>
-</head>
-<body>
-    <header>
-        <div class="container header-content">
-            <div class="logo">Sistema Restaurante - Coiote BBQ</div>
-            <div class="menu-toggle" id="menuToggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <nav>
-                <ul id="navMenu">
-                    <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
-                    <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
-                    <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
-                    <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
 
-    <div class="container">
-        <!-- Dashboard -->
-        <section id="dashboard" class="section active">
-            <h1>Dashboard</h1>
-            
-            <!-- Filtros do Dashboard -->
-            <div class="card">
-                <h2>Filtros</h2>
-                <div class="dashboard-filters">
-                    <div class="form-group">
-                        <label for="filtro-produto">Produto</label>
-                        <select id="filtro-produto">
-                            <option value="">Todos os produtos</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="filtro-categoria">Categoria</label>
-                        <select id="filtro-categoria">
-                            <option value="">Todas as categorias</option>
-                            <option value="Espeto">Espeto</option>
-                            <option value="Copos">Copos</option>
-                            <option value="Bebidas">Bebidas</option>
-                            <option value="Facas">Facas</option>
-                            <option value="Itens para Churrasco">Itens para Churrasco</option>
-                            <option value="Espeto Congelado">Espeto Congelado</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="filtro-data-inicio">Data Início</label>
-                        <input type="date" id="filtro-data-inicio">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="filtro-data-fim">Data Fim</label>
-                        <input type="date" id="filtro-data-fim">
-                    </div>
-                    
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary" id="aplicar-filtros">Aplicar Filtros</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="total-vendas">R$ 0,00</div>
-                    <div class="stat-label">Total em Vendas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="total-comandas">0</div>
-                    <div class="stat-label">Comandas Ativas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="total-produtos">0</div>
-                    <div class="stat-label">Produtos Cadastrados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="vendas-hoje">0</div>
-                    <div class="stat-label">Vendas Hoje</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Comandas Ativas</h2>
-                <div id="comandas-lista-dashboard"></div>
-            </div>
-            
-            <div class="card">
-                <h2>Produtos Mais Vendidos</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="produtos-mais-vendidos">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Comandas -->
-        <section id="comandas" class="section">
-            <h1>Gerenciar Comandas</h1>
-            
-            <div class="card">
-                <div class="alert alert-success hidden" id="comanda-success"></div>
-                <div class="alert alert-danger hidden" id="comanda-error"></div>
-                
-                <div class="form-group">
-                    <label for="cliente">Nome do Cliente</label>
-                    <input type="text" id="cliente" placeholder="Nome do cliente">
-                </div>
-                
-                <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
-            </div>
-            
-            <div class="card">
-                <h2>Comandas Ativas</h2>
-                <div id="comandas-lista"></div>
-            </div>
-        </section>
-
-        <!-- Produtos -->
-        <section id="produtos" class="section">
-            <h1>Gerenciar Produtos</h1>
-            
-            <div class="card">
-                <div class="alert alert-success hidden" id="produto-success"></div>
-                <div class="alert alert-danger hidden" id="produto-error"></div>
-                
-                <div class="form-group">
-                    <label for="nome-produto">Nome do Produto</label>
-                    <input type="text" id="nome-produto" placeholder="Nome do produto">
-                </div>
-                
-                <div class="form-group">
-                    <label for="categoria">Categoria</label>
-                    <select id="categoria">
-                        <option value="">Selecione uma categoria</option>
-                        <option value="Espeto">Espeto</option>
-                        <option value="Copos">Copos</option>
-                        <option value="Bebidas">Bebidas</option>
-                        <option value="Facas">Facas</option>
-                        <option value="Itens para Churrasco">Itens para Churrasco</option>
-                        <option value="Espeto Congelado">Espeto Congelado</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="preco">Preço (R$)</label>
-                    <input type="number" id="preco" min="0" step="0.01" placeholder="Preço do produto">
-                </div>
-                
-                <div class="form-group">
-                    <label for="descricao">Descrição</label>
-                    <textarea id="descricao" rows="3" placeholder="Descrição do produto"></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Produtos Cadastrados</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Categoria</th>
-                            <th>Preço</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-produtos">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Relatórios -->
-        <section id="relatorios" class="section">
-            <h1>Relatórios de Vendas</h1>
-            
-            <div class="card">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="data-inicio">Data de Início</label>
-                        <input type="date" id="data-inicio">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="data-fim">Data de Fim</label>
-                        <input type="date" id="data-fim">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="filtrar-relatorio">Filtrar</button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-success" id="exportar-relatorio">Exportar para CSV</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Relatório de Vendas</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Comanda</th>
-                            <th>Cliente</th>
-                            <th>Total</th>
-                            <th>Pagamento</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="relatorio-vendas">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </div>
-
-    <!-- Modal para adicionar itens à comanda -->
-    <div id="modal-comanda" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Adicionar Itens à Comanda</h3>
-                <button class="btn btn-primary" id="salvar-fechar-comanda">OK</button>
-            </div>
-            
-            <div class="category-filter">
-                <label>Filtrar por Categoria:</label>
-                <div class="category-buttons" id="category-buttons">
-                    <!-- Botões de categoria serão gerados dinamicamente -->
-                </div>
-            </div>
-            
-            <div class="product-grid" id="product-grid">
-                <!-- Produtos serão gerados dinamicamente -->
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="quantidade">Quantidade</label>
-                    <input type="number" id="quantidade" min="1" value="1">
-                </div>
-                <div class="form-group">
-                    <label>&nbsp;</label>
-                    <button class="btn btn-primary" id="adicionar-item-comanda" style="width: 100%;">Adicionar à Comanda</button>
-                </div>
-            </div>
-            
-            <h3 style="margin-top: 20px;">Itens na Comanda</h3>
-            <div id="itens-comanda-modal"></div>
-            
-            <div class="comanda-total" id="total-comanda-modal">Total: R$ 0,00</div>
-            
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-success" id="fechar-comanda">Fechar Comanda</button>
-                <button class="btn btn-warning" id="cancelar-comanda">Cancelar Comanda</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para forma de pagamento -->
-    <div id="modal-pagamento" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Forma de Pagamento</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            
-            <div class="payment-options">
-                <div class="payment-option" data-payment="dinheiro">
-                    <h4>Dinheiro</h4>
-                </div>
-                <div class="payment-option" data-payment="pix">
-                    <h4>PIX</h4>
-                </div>
-                <div class="payment-option" data-payment="debito">
-                    <h4>Cartão de Débito</h4>
-                </div>
-                <div class="payment-option" data-payment="credito">
-                    <h4>Cartão de Crédito</h4>
-                </div>
-            </div>
-            
-            <!-- QR Code PIX (aparece apenas quando PIX é selecionado) -->
-            <div id="pix-code-container" class="pix-code hidden">
-                <h4>Pagamento via PIX - Coiote BBQ</h4>
-                <p>Escaneie o QR Code abaixo para pagar:</p>
-                <div class="qr-code-container">
-                    <img src="./public/qr-code-pix.png" alt="QR Code PIX Coiote BBQ" id="qrcode-image">
-                </div>
-                <p style="margin-top: 10px; font-size: 12px; color: #666;">Ou copie o código PIX:</p>
-                <div class="pix-code-text" id="pix-code-text">
-                    00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9
-                </div>
-                <button class="btn btn-primary" onclick="copiarCodigoPix()" style="margin-top: 10px;">Copiar Código PIX</button>
-            </div>
-            
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-success" id="confirmar-pagamento" style="flex: 1;">Confirmar Pagamento</button>
-                <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para visualizar detalhes da venda -->
-    <div id="modal-venda" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Detalhes da Venda</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            
-            <div id="detalhes-venda"></div>
-        </div>
-    </div>
-
+    <!-- ========== ANALYTICS (Optional - Uncomment to enable) ========== -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
-        // Código PIX do Coiote BBQ
-        const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
-
-        // Função para copiar código PIX
-        function copiarCodigoPix() {
-            const pixCodeText = document.getElementById('pix-code-text');
-            const textArea = document.createElement('textarea');
-            textArea.value = CODIGO_PIX;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            alert('Código PIX copiado para a área de transferência!');
-        }
-
-        // Sistema de navegação
-        function setupNavigation() {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Atualizar navegação ativa
-                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Mostrar seção correspondente
-                    const sectionId = this.getAttribute('data-section');
-                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                    document.getElementById(sectionId).classList.add('active');
-                    
-                    // Fechar menu mobile se estiver aberto
-                    document.getElementById('navMenu').classList.remove('show');
-                    
-                    // Atualizar dados específicos da seção
-                    if (sectionId === 'dashboard') {
-                        atualizarDashboard();
-                        carregarFiltrosProdutos();
-                    } else if (sectionId === 'comandas') {
-                        carregarComandas();
-                    } else if (sectionId === 'produtos') {
-                        carregarProdutos();
-                    } else if (sectionId === 'relatorios') {
-                        carregarRelatorios();
-                    }
-                });
-            });
-
-            // Menu mobile toggle
-            document.getElementById('menuToggle').addEventListener('click', function() {
-                document.getElementById('navMenu').classList.toggle('show');
-            });
-        }
-
-        // Variáveis globais
-        let comandaAtual = null;
-        let formaPagamento = null;
-        let produtoSelecionado = null;
-        let categoriaAtual = '';
-        let filtrosDashboard = {
-            produto: '',
-            categoria: '',
-            dataInicio: '',
-            dataFim: ''
-        };
-        let produtoEmEdicao = null;
-
-        // Categorias disponíveis
-        const categorias = [
-            "Espeto",
-            "Copos", 
-            "Bebidas",
-            "Facas",
-            "Itens para Churrasco",
-            "Espeto Congelado"
-        ];
-
-        // Funções para gerenciar produtos
-        function carregarProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const listaProdutos = document.getElementById('lista-produtos');
-            
-            listaProdutos.innerHTML = '';
-            
-            if (produtos.length === 0) {
-                listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
-                return;
-            }
-            
-            produtos.forEach((produto, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${produto.nome}</td>
-                    <td>${produto.categoria}</td>
-                    <td>R$ ${produto.preco.toFixed(2)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-warning" onclick="editarProduto(${index})">Editar</button>
-                            <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
-                        </div>
-                    </td>
-                `;
-                listaProdutos.appendChild(tr);
-            });
-        }
-
-        function carregarFiltrosProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const filtroProduto = document.getElementById('filtro-produto');
-            
-            // Limpar opções existentes (mantendo a primeira)
-            while (filtroProduto.children.length > 1) {
-                filtroProduto.removeChild(filtroProduto.lastChild);
-            }
-            
-            // Adicionar produtos
-            produtos.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = produto.id;
-                option.textContent = produto.nome;
-                filtroProduto.appendChild(option);
-            });
-        }
-
-        function adicionarProduto() {
-            const nome = document.getElementById('nome-produto').value;
-            const categoria = document.getElementById('categoria').value;
-            const preco = parseFloat(document.getElementById('preco').value);
-            const descricao = document.getElementById('descricao').value;
-            
-            if (!nome || !categoria || !preco) {
-                mostrarAlerta('produto-error', 'Por favor, preencha todos os campos obrigatórios.');
-                return;
-            }
-            
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            
-            if (produtoEmEdicao !== null) {
-                // Modo edição - atualizar produto existente
-                produtos[produtoEmEdicao] = {
-                    ...produtos[produtoEmEdicao],
-                    nome,
-                    categoria,
-                    preco,
-                    descricao
-                };
-                
-                mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
-                cancelarEdicao();
-            } else {
-                // Modo adição - adicionar novo produto
-                const novoProduto = {
-                    nome,
-                    categoria,
-                    preco,
-                    descricao,
-                    id: Date.now()
-                };
-                
-                produtos.push(novoProduto);
-                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
-            }
-            
-            localStorage.setItem('produtos', JSON.stringify(produtos));
-            
-            // Limpar formulário
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('categoria').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('descricao').value = '';
-            
-            carregarProdutos();
-            carregarFiltrosProdutos();
-            atualizarDashboard();
-        }
-
-        function editarProduto(index) {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const produto = produtos[index];
-            
-            // Preencher formulário com dados do produto
-            document.getElementById('nome-produto').value = produto.nome;
-            document.getElementById('categoria').value = produto.categoria;
-            document.getElementById('preco').value = produto.preco;
-            document.getElementById('descricao').value = produto.descricao || '';
-            
-            // Alterar para modo edição
-            produtoEmEdicao = index;
-            document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
-            document.getElementById('cancelar-edicao').classList.remove('hidden');
-            
-            // Rolar para o formulário
-            document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function cancelarEdicao() {
-            // Limpar formulário
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('categoria').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('descricao').value = '';
-            
-            // Voltar para modo adição
-            produtoEmEdicao = null;
-            document.getElementById('adicionar-produto').textContent = 'Adicionar Produto';
-            document.getElementById('cancelar-edicao').classList.add('hidden');
-        }
-
-        function excluirProduto(index) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
-                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-                produtos.splice(index, 1);
-                localStorage.setItem('produtos', JSON.stringify(produtos));
-                carregarProdutos();
-                carregarFiltrosProdutos();
-                atualizarDashboard();
-                
-                // Se estava editando o produto excluído, cancelar a edição
-                if (produtoEmEdicao === index) {
-                    cancelarEdicao();
-                }
-            }
-        }
-
-        // Funções para gerenciar comandas
-        function carregarComandas() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const listaComandas = document.getElementById('comandas-lista');
-            
-            listaComandas.innerHTML = '';
-            
-            if (comandas.length === 0) {
-                listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
-                return;
-            }
-            
-            comandas.forEach((comanda, index) => {
-                const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-                
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `
-                    <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
-                    <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
-                    <p><strong>Itens:</strong> ${comanda.itens.length}</p>
-                    <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
-                    <button class="btn btn-primary" onclick="abrirModalComanda(${index})">Ver/Editar</button>
-                `;
-                listaComandas.appendChild(div);
-            });
-        }
-
-        function criarComanda() {
-            const cliente = document.getElementById('cliente').value;
-            
-            if (!cliente) {
-                mostrarAlerta('comanda-error', 'Por favor, informe o nome do cliente.');
-                return;
-            }
-            
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const id = gerarIdComanda();
-            
-            comandas.push({
-                id: id,
-                cliente: cliente,
-                itens: [],
-                dataAbertura: new Date().toISOString(),
-                status: 'ativa'
-            });
-            
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Limpar formulário
-            document.getElementById('cliente').value = '';
-            
-            mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
-            carregarComandas();
-            atualizarDashboard();
-        }
-
-        function gerarIdComanda() {
-            let ultimoId = parseInt(localStorage.getItem('ultimoIdComanda')) || 0;
-            ultimoId++;
-            localStorage.setItem('ultimoIdComanda', ultimoId.toString());
-            return ultimoId;
-        }
-
-        function abrirModalComanda(index) {
-            const modal = document.getElementById('modal-comanda');
-            modal.style.display = 'flex';
-            comandaAtual = index;
-            
-            // Resetar seleção
-            produtoSelecionado = null;
-            categoriaAtual = '';
-            
-            // Criar botões de categoria
-            criarBotoesCategoria();
-            
-            // Carregar produtos
-            carregarProdutosModal();
-            
-            // Atualizar itens da comanda
-            atualizarItensComandaModal(index);
-            
-            // Configurar eventos
-            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(index);
-            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(index);
-            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(index);
-            document.getElementById('salvar-fechar-comanda').onclick = () => {
-                modal.style.display = 'none';
-                carregarComandas();
-                atualizarDashboard();
-            };
-        }
-
-        function criarBotoesCategoria() {
-            const container = document.getElementById('category-buttons');
-            container.innerHTML = '';
-            
-            // Botão para mostrar todos
-            const btnTodos = document.createElement('button');
-            btnTodos.className = 'category-btn active';
-            btnTodos.textContent = 'Todos';
-            btnTodos.onclick = () => filtrarProdutosPorCategoria('');
-            container.appendChild(btnTodos);
-            
-            // Botões para cada categoria
-            categorias.forEach(categoria => {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                btn.textContent = categoria;
-                btn.onclick = () => filtrarProdutosPorCategoria(categoria);
-                container.appendChild(btn);
-            });
-        }
-
-        function filtrarProdutosPorCategoria(categoria) {
-            categoriaAtual = categoria;
-            
-            // Atualizar botões ativos
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Encontrar e ativar o botão correto
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                if (categoria === '' && btn.textContent === 'Todos') {
-                    btn.classList.add('active');
-                } else if (btn.textContent === categoria) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Recarregar produtos com filtro
-            carregarProdutosModal();
-        }
-
-        function carregarProdutosModal() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const container = document.getElementById('product-grid');
-            container.innerHTML = '';
-            
-            // Filtrar produtos por categoria
-            let produtosFiltrados = produtos;
-            if (categoriaAtual) {
-                produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
-            }
-            
-            if (produtosFiltrados.length === 0) {
-                container.innerHTML = '<p>Nenhum produto encontrado</p>';
-                return;
-            }
-            
-            produtosFiltrados.forEach(produto => {
-                const div = document.createElement('div');
-                div.className = 'product-item';
-                if (produtoSelecionado && produtoSelecionado.id === produto.id) {
-                    div.classList.add('selected');
-                }
-                
-                div.innerHTML = `
-                    <div class="product-name">${produto.nome}</div>
-                    <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
-                `;
-                
-                div.onclick = () => {
-                    // Desselecionar produto anterior
-                    document.querySelectorAll('.product-item').forEach(item => {
-                        item.classList.remove('selected');
-                    });
-                    
-                    // Selecionar produto atual
-                    div.classList.add('selected');
-                    produtoSelecionado = produto;
-                };
-                
-                container.appendChild(div);
-            });
-        }
-
-        function abrirModalPagamento(index) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            if (comanda.itens.length === 0) {
-                alert('Não é possível fechar uma comanda sem itens.');
-                return;
-            }
-            
-            // Fechar modal da comanda
-            document.getElementById('modal-comanda').style.display = 'none';
-            
-            // Abrir modal de pagamento
-            const modalPagamento = document.getElementById('modal-pagamento');
-            modalPagamento.style.display = 'flex';
-            
-            // Resetar seleção de pagamento
-            formaPagamento = null;
-            document.querySelectorAll('.payment-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Esconder código PIX inicialmente
-            document.getElementById('pix-code-container').classList.add('hidden');
-            
-            // Configurar eventos de seleção de pagamento
-            document.querySelectorAll('.payment-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    formaPagamento = this.getAttribute('data-payment');
-                    
-                    // Mostrar QR Code PIX se selecionado
-                    if (formaPagamento === 'pix') {
-                        document.getElementById('pix-code-container').classList.remove('hidden');
-                    } else {
-                        document.getElementById('pix-code-container').classList.add('hidden');
-                    }
-                });
-            });
-            
-            // Configurar eventos dos botões
-            document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
-            document.getElementById('cancelar-pagamento').onclick = () => {
-                modalPagamento.style.display = 'none';
-                document.getElementById('modal-comanda').style.display = 'flex';
-            };
-            
-            // Fechar modal
-            document.querySelector('#modal-pagamento .close-btn').onclick = () => {
-                modalPagamento.style.display = 'none';
-                document.getElementById('modal-comanda').style.display = 'flex';
-            };
-        }
-
-        function atualizarItensComandaModal(index) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            const container = document.getElementById('itens-comanda-modal');
-            const totalElement = document.getElementById('total-comanda-modal');
-            
-            container.innerHTML = '';
-            
-            if (comanda.itens.length === 0) {
-                container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
-                totalElement.textContent = 'Total: R$ 0,00';
-                return;
-            }
-            
-            let total = 0;
-            
-            comanda.itens.forEach((item, itemIndex) => {
-                const itemTotal = item.preco * item.quantidade;
-                total += itemTotal;
-                
-                const div = document.createElement('div');
-                div.className = 'comanda-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${item.nome}</strong><br>
-                        <small>R$ ${item.preco.toFixed(2)} x ${item.quantidade}</small>
-                    </div>
-                    <div>
-                        <span>R$ ${itemTotal.toFixed(2)}</span>
-                        <button class="btn btn-danger" onclick="removerItemComanda(${index}, ${itemIndex})">Remover</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            
-            totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
-        }
-
-        function adicionarItemComanda(index) {
-            const quantidade = parseInt(document.getElementById('quantidade').value);
-            
-            if (!produtoSelecionado) {
-                alert('Por favor, selecione um produto.');
-                return;
-            }
-            
-            if (!quantidade || quantidade < 1) {
-                alert('Por favor, informe uma quantidade válida.');
-                return;
-            }
-            
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            // Verificar se o item já existe na comanda
-            const itemExistente = comanda.itens.find(item => item.id === produtoSelecionado.id);
-            
-            if (itemExistente) {
-                itemExistente.quantidade += quantidade;
-            } else {
-                comanda.itens.push({
-                    id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
-                    preco: produtoSelecionado.preco,
-                    quantidade: quantidade
-                });
-            }
-            
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            atualizarItensComandaModal(index);
-            
-            // Resetar seleção
-            produtoSelecionado = null;
-            document.querySelectorAll('.product-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-        }
-
-        function removerItemComanda(comandaIndex, itemIndex) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            comandas[comandaIndex].itens.splice(itemIndex, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            atualizarItensComandaModal(comandaIndex);
-        }
-
-        function fecharComanda(index) {
-            if (!formaPagamento) {
-                alert('Por favor, selecione uma forma de pagamento.');
-                return;
-            }
-            
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            
-            // Registrar venda
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            vendas.push({
-                comandaId: comanda.id,
-                cliente: comanda.cliente,
-                itens: [...comanda.itens],
-                total: total,
-                formaPagamento: formaPagamento,
-                data: new Date().toISOString()
-            });
-            
-            localStorage.setItem('vendas', JSON.stringify(vendas));
-            
-            // Remover comanda
-            comandas.splice(index, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Fechar modal
-            document.getElementById('modal-pagamento').style.display = 'none';
-            
-            alert(`Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)} - Forma de pagamento: ${formaPagamento}`);
-            carregarComandas();
-            atualizarDashboard();
-        }
-
-        function cancelarComanda(index) {
-            if (confirm('Tem certeza que deseja cancelar esta comanda?')) {
-                const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-                comandas.splice(index, 1);
-                localStorage.setItem('comandas', JSON.stringify(comandas));
-                
-                // Fechar modal
-                document.getElementById('modal-comanda').style.display = 'none';
-                
-                carregarComandas();
-                atualizarDashboard();
-            }
-        }
-
-        // Funções para relatórios
-        function carregarRelatorios() {
-            const dataInicio = document.getElementById('data-inicio').value;
-            const dataFim = document.getElementById('data-fim').value;
-            
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            // Filtrar por data se especificado
-            if (dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= dataInicio);
-            }
-            
-            if (dataFim) {
-                // Adicionar um dia para incluir vendas do dia final
-                const fim = new Date(dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
-            }
-            
-            const tabela = document.getElementById('relatorio-vendas');
-            tabela.innerHTML = '';
-            
-            if (vendas.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
-                return;
-            }
-            
-            vendas.forEach((venda, index) => {
-                const data = new Date(venda.data);
-                const dataFormatada = data.toLocaleDateString('pt-BR');
-                
-                // Formatar forma de pagamento
-                let pagamentoFormatado = '';
-                switch(venda.formaPagamento) {
-                    case 'dinheiro':
-                        pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
-                        break;
-                    case 'pix':
-                        pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
-                        break;
-                    case 'debito':
-                        pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
-                        break;
-                    case 'credito':
-                        pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
-                        break;
-                    default:
-                        pagamentoFormatado = '<span class="badge">N/A</span>';
-                }
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${dataFormatada}</td>
-                    <td>#${venda.comandaId}</td>
-                    <td>${venda.cliente || 'Cliente não informado'}</td>
-                    <td>R$ ${venda.total.toFixed(2)}</td>
-                    <td>${pagamentoFormatado}</td>
-                    <td>
-                        <button class="btn btn-primary" onclick="verDetalhesVenda(${index})">Ver Detalhes</button>
-                    </td>
-                `;
-                tabela.appendChild(tr);
-            });
-        }
-
-        function verDetalhesVenda(index) {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const venda = vendas[index];
-            
-            // Formatar forma de pagamento
-            let pagamentoTexto = '';
-            switch(venda.formaPagamento) {
-                case 'dinheiro':
-                    pagamentoTexto = 'Dinheiro';
-                    break;
-                case 'pix':
-                    pagamentoTexto = 'PIX';
-                    break;
-                case 'debito':
-                    pagamentoTexto = 'Cartão de Débito';
-                    break;
-                case 'credito':
-                    pagamentoTexto = 'Cartão de Crédito';
-                    break;
-                default:
-                    pagamentoTexto = 'Não informado';
-            }
-            
-            const modal = document.getElementById('modal-venda');
-            const container = document.getElementById('detalhes-venda');
-            
-            container.innerHTML = `
-                <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
-                <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
-                <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
-                <h4>Itens:</h4>
-                <ul>
-                    ${venda.itens.map(item => `
-                        <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
-                    `).join('')}
-                </ul>
-                <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
-            `;
-            
-            modal.style.display = 'flex';
-            
-            // Fechar modal
-            document.querySelector('#modal-venda .close-btn').onclick = () => {
-                modal.style.display = 'none';
-            };
-        }
-
-        function exportarRelatorio() {
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            const dataInicio = document.getElementById('data-inicio').value;
-            const dataFim = document.getElementById('data-fim').value;
-            
-            // Filtrar por data se especificado
-            if (dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= dataInicio);
-            }
-            
-            if (dataFim) {
-                // Adicionar um dia para incluir vendas do dia final
-                const fim = new Date(dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
-            }
-            
-            if (vendas.length === 0) {
-                alert('Nenhuma venda para exportar.');
-                return;
-            }
-            
-            // Criar CSV
-            let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
-            
-            vendas.forEach(venda => {
-                const data = new Date(venda.data);
-                const dataFormatada = data.toLocaleDateString('pt-BR');
-                
-                // Formatar forma de pagamento
-                let pagamentoTexto = '';
-                switch(venda.formaPagamento) {
-                    case 'dinheiro':
-                        pagamentoTexto = 'Dinheiro';
-                        break;
-                    case 'pix':
-                        pagamentoTexto = 'PIX';
-                        break;
-                    case 'debito':
-                        pagamentoTexto = 'Cartão de Débito';
-                        break;
-                    case 'credito':
-                        pagamentoTexto = 'Cartão de Crédito';
-                        break;
-                    default:
-                        pagamentoTexto = 'Não informado';
-                }
-                
-                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
-            });
-            
-            // Criar e baixar arquivo
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Funções para dashboard
-        function aplicarFiltrosDashboard() {
-            // Capturar valores dos filtros
-            filtrosDashboard.produto = document.getElementById('filtro-produto').value;
-            filtrosDashboard.categoria = document.getElementById('filtro-categoria').value;
-            filtrosDashboard.dataInicio = document.getElementById('filtro-data-inicio').value;
-            filtrosDashboard.dataFim = document.getElementById('filtro-data-fim').value;
-            
-            // Atualizar dashboard com filtros
-            atualizarDashboard();
-        }
-
-        function atualizarDashboard() {
-            // Estatísticas gerais
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            // Aplicar filtros nas vendas
-            if (filtrosDashboard.dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
-            }
-            
-            if (filtrosDashboard.dataFim) {
-                const fim = new Date(filtrosDashboard.dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
-            }
-            
-            if (filtrosDashboard.categoria) {
-                vendas = vendas.filter(venda => 
-                    venda.itens.some(item => {
-                        const produto = produtos.find(p => p.id === item.id);
-                        return produto && produto.categoria === filtrosDashboard.categoria;
-                    })
-                );
-            }
-            
-            if (filtrosDashboard.produto) {
-                vendas = vendas.filter(venda => 
-                    venda.itens.some(item => item.id.toString() === filtrosDashboard.produto)
-                );
-            }
-            
-            // Total em vendas
-            const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
-            document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
-            
-            // Comandas ativas
-            document.getElementById('total-comandas').textContent = comandas.length;
-            
-            // Produtos cadastrados
-            document.getElementById('total-produtos').textContent = produtos.length;
-            
-            // Vendas hoje
-            const hoje = new Date().toISOString().split('T')[0];
-            const vendasHoje = vendas.filter(venda => venda.data.startsWith(hoje)).length;
-            document.getElementById('vendas-hoje').textContent = vendasHoje;
-            
-            // Comandas ativas no dashboard
-            const comandasDashboard = document.getElementById('comandas-lista-dashboard');
-            comandasDashboard.innerHTML = '';
-            
-            if (comandas.length === 0) {
-                comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
-            } else {
-                comandas.forEach(comanda => {
-                    const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-                    
-                    const div = document.createElement('div');
-                    div.className = 'comanda-item';
-                    div.innerHTML = `
-                        <div>
-                            <strong>Comanda #${comanda.id}</strong><br>
-                            <small>${comanda.cliente || 'Cliente não informado'}</small>
-                        </div>
-                        <div>R$ ${total.toFixed(2)}</div>
-                    `;
-                    comandasDashboard.appendChild(div);
-                });
-            }
-            
-            // Produtos mais vendidos
-            const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
-            produtosMaisVendidos.innerHTML = '';
-            
-            if (vendas.length === 0) {
-                produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
-                return;
-            }
-            
-            // Agrupar produtos vendidos
-            const produtosVendidos = {};
-            
-            vendas.forEach(venda => {
-                venda.itens.forEach(item => {
-                    if (!produtosVendidos[item.id]) {
-                        produtosVendidos[item.id] = {
-                            nome: item.nome,
-                            quantidade: 0,
-                            total: 0
-                        };
-                    }
-                    
-                    produtosVendidos[item.id].quantidade += item.quantidade;
-                    produtosVendidos[item.id].total += item.preco * item.quantidade;
-                });
-            });
-            
-            // Ordenar por quantidade (mais vendidos primeiro)
-            const produtosOrdenados = Object.values(produtosVendidos)
-                .sort((a, b) => b.quantidade - a.quantidade)
-                .slice(0, 5); // Top 5
-            
-            produtosOrdenados.forEach(produto => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${produto.nome}</td>
-                    <td>${produto.quantidade}</td>
-                    <td>R$ ${produto.total.toFixed(2)}</td>
-                `;
-                produtosMaisVendidos.appendChild(tr);
-            });
-        }
-
-        // Funções auxiliares
-        function mostrarAlerta(id, mensagem) {
-            const alerta = document.getElementById(id);
-            alerta.textContent = mensagem;
-            alerta.classList.remove('hidden');
-            
-            setTimeout(() => {
-                alerta.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Inicialização da aplicação
-        function initializeApp() {
-            // Configurar eventos
-            document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
-            document.getElementById('cancelar-edicao').addEventListener('click', cancelarEdicao);
-            document.getElementById('criar-comanda').addEventListener('click', criarComanda);
-            document.getElementById('filtrar-relatorio').addEventListener('click', carregarRelatorios);
-            document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
-            document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
-            
-            // Configurar navegação
-            setupNavigation();
-            
-            // Carregar dados iniciais
-            carregarProdutos();
-            carregarFiltrosProdutos();
-            carregarComandas();
-            carregarRelatorios();
-            atualizarDashboard();
-            
-            // Configurar data padrão para relatórios (últimos 7 dias)
-            const dataFim = new Date();
-            const dataInicio = new Date();
-            dataInicio.setDate(dataInicio.getDate() - 7);
-            
-            document.getElementById('data-inicio').value = dataInicio.toISOString().split('T')[0];
-            document.getElementById('data-fim').value = dataFim.toISOString().split('T')[0];
-            
-            // Configurar datas padrão para os filtros do dashboard
-            document.getElementById('filtro-data-inicio').value = dataInicio.toISOString().split('T')[0];
-            document.getElementById('filtro-data-fim').value = dataFim.toISOString().split('T')[0];
-        }
-
-        // Inicialização ao carregar a página
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_MEASUREMENT_ID');
     </script>
-</body>
+    -->
+
+    <!-- ========== STRUCTURED DATA (JSON-LD) ========== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Coiote BBQ",
+      "image": "/icon.png",
+      "description": "Sistema de gestão para restaurantes",
+      "url": "https://coiote-bbq.com",
+      "telephone": "+55-11-9999-9999",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Rua do Restaurante, 123",
+        "addressLocality": "São Paulo",
+        "postalCode": "01234-567",
+        "addressCountry": "BR"
+      },
+      "priceRange": "$$",
+      "sameAs": [
+        "https://www.facebook.com/coiotabbq",
+        "https://www.instagram.com/coiotabbq",
+        "https://www.twitter.com/coiotabbq"
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <!-- ========== ROOT ELEMENT ========== -->
+    <div id="root">
+      <!-- Loading state shown until React mounts -->
+      <div class="loading-container" id="loading-state" style="display: flex;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text loading-pulse">Carregando Coiote BBQ...</p>
+      </div>
+    </div>
+
+    <!-- ========== ACCESSIBILITY HELPERS ========== -->
+    <span class="sr-only">Skip to main content</span>
+
+    <!-- ========== REACT APPLICATION ENTRY POINT ========== -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- ========== INITIALIZATION SCRIPT ========== -->
+    <script>
+      // Detect theme preference
+      (function() {
+        const darkModePreference = window.matchMedia('(prefers-color-scheme: dark)');
+        const storedTheme = localStorage.getItem('theme');
+        
+        const applyTheme = (isDark) => {
+          document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+        };
+
+        if (storedTheme) {
+          applyTheme(storedTheme === 'dark');
+        } else {
+          applyTheme(darkModePreference.matches);
+        }
+
+        // Listen for system theme changes
+        darkModePreference.addEventListener('change', (e) => {
+          if (!localStorage.getItem('theme')) {
+            applyTheme(e.matches);
+          }
+        });
+      })();
+
+      // Hide loading state when React mounts
+      const originalError = console.error;
+      let hasError = false;
+      
+      console.error = function(...args) {
+        hasError = true;
+        originalError.apply(console, args);
+      };
+
+      // Set timeout to hide loading after 5 seconds (fallback)
+      const loadingTimeout = setTimeout(() => {
+        const loadingState = document.getElementById('loading-state');
+        if (loadingState) {
+          loadingState.style.display = 'none';
+        }
+      }, 5000);
+
+      // Observe DOM changes to detect when React mounts
+      const observer = new MutationObserver((mutations) => {
+        const loadingState = document.getElementById('loading-state');
+        if (loadingState && document.querySelector('[data-testid], main, nav, .dashboard')) {
+          loadingState.style.display = 'none';
+          clearTimeout(loadingTimeout);
+          observer.disconnect();
+        }
+      });
+
+      observer.observe(document.getElementById('root'), {
+        childList: true,
+        subtree: true,
+      });
+
+      // Performance monitoring
+      if (window.performance && window.performance.timing) {
+        window.addEventListener('load', () => {
+          const perfData = window.performance.timing;
+          const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+          console.log(`Page load time: ${pageLoadTime}ms`);
+        });
+      }
+
+      // Service Worker registration (PWA support)
+      if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+      }
+
+      // Check for required browser features
+      const requiredFeatures = ['localStorage', 'sessionStorage', 'indexedDB'];
+      requiredFeatures.forEach(feature => {
+        if (typeof window[feature] === 'undefined') {
+          console.warn(`${feature} is not available`);
+        }
+      });
+
+      // Global error handler
+      window.addEventListener('error', (event) => {
+        console.error('Uncaught error:', event.error);
+      });
+
+      // Unhandled promise rejection handler
+      window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+      });
+    </script>
+
+    <!-- ========== MANIFEST REFERENCE ========== -->
+    <!-- Note: Create /public/manifest.json for PWA support -->
+  </body>
 </html>
