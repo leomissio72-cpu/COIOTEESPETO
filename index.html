@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão - Restaurante</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+    
     <style>
         :root {
             --primary: #2c3e50;
@@ -49,6 +55,33 @@
         .logo {
             font-size: 24px;
             font-weight: bold;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         
         nav ul {
@@ -112,6 +145,27 @@
         .btn-warning {
             background-color: var(--warning);
             color: white;
+        }
+        
+        .btn-google {
+            background-color: #ffffff;
+            color: #757575;
+            border: 1px solid #dadce0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 15px;
+            font-weight: 500;
+        }
+        
+        .btn-google:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .btn-google img {
+            width: 18px;
+            height: 18px;
         }
         
         .btn:hover {
@@ -461,6 +515,35 @@
             font-size: 12px;
         }
         
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-title {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .login-subtitle {
+            margin-bottom: 30px;
+            color: #666;
+        }
+        
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -609,11 +692,31 @@
             .action-buttons {
                 flex-direction: column;
             }
+            
+            .user-info {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
+    <!-- Modal de Login -->
+    <div id="login-modal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <div class="login-card">
+                <h2 class="login-title">Sistema Restaurante</h2>
+                <p class="login-subtitle">Faça login para acessar o sistema</p>
+                <button id="google-login" class="btn btn-google">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    Entrar com Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header style="display: none;" id="main-header">
         <div class="container header-content">
             <div class="logo">Sistema Restaurante</div>
             <div class="menu-toggle" id="menuToggle">
@@ -629,10 +732,15 @@
                     <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
                 </ul>
             </nav>
+            <div class="user-info" id="user-info">
+                <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
+                <span id="user-name">Usuário</span>
+                <button class="logout-btn" id="logout-btn">Sair</button>
+            </div>
         </div>
     </header>
 
-    <div class="container">
+    <div class="container" id="main-content" style="display: none;">
         <!-- Dashboard -->
         <section id="dashboard" class="section active">
             <h1>Dashboard</h1>
@@ -943,41 +1051,128 @@
     </div>
 
     <script>
-        // Sistema de navegação
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Atualizar navegação ativa
-                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Mostrar seção correspondente
-                const sectionId = this.getAttribute('data-section');
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                document.getElementById(sectionId).classList.add('active');
-                
-                // Fechar menu mobile se estiver aberto
-                document.getElementById('navMenu').classList.remove('show');
-                
-                // Atualizar dados específicos da seção
-                if (sectionId === 'dashboard') {
-                    atualizarDashboard();
-                    carregarFiltrosProdutos();
-                } else if (sectionId === 'comandas') {
-                    carregarComandas();
-                } else if (sectionId === 'produtos') {
-                    carregarProdutos();
-                } else if (sectionId === 'relatorios') {
-                    carregarRelatorios();
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5NWbiiPIoc4N9qUizsAkX-S_jbsWUhfY",
+            authDomain: "espeto-a4f94.firebaseapp.com",
+            projectId: "espeto-a4f94",
+            storageBucket: "espeto-a4f94.firebasestorage.app",
+            messagingSenderId: "1021397176394",
+            appId: "1:1021397176394:web:9b65858006f96bcf4956b3",
+            measurementId: "G-56HE56LKJ5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const auth = firebase.auth();
+
+        // Sistema de autenticação
+        function initAuth() {
+            // Observador de estado de autenticação
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // Usuário logado
+                    showApp(user);
+                } else {
+                    // Usuário não logado
+                    showLogin();
                 }
             });
-        });
 
-        // Menu mobile toggle
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            document.getElementById('navMenu').classList.toggle('show');
-        });
+            // Configurar login com Google
+            document.getElementById('google-login').addEventListener('click', signInWithGoogle);
+            
+            // Configurar logout
+            document.getElementById('logout-btn').addEventListener('click', signOut);
+        }
+
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // Login bem-sucedido
+                    console.log('Usuário logado:', result.user);
+                })
+                .catch((error) => {
+                    console.error('Erro no login:', error);
+                    alert('Erro ao fazer login: ' + error.message);
+                });
+        }
+
+        function signOut() {
+            auth.signOut()
+                .then(() => {
+                    // Logout bem-sucedido
+                    console.log('Usuário deslogado');
+                })
+                .catch((error) => {
+                    console.error('Erro no logout:', error);
+                });
+        }
+
+        function showApp(user) {
+            // Esconder modal de login
+            document.getElementById('login-modal').style.display = 'none';
+            
+            // Mostrar header e conteúdo principal
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('main-content').style.display = 'block';
+            
+            // Atualizar informações do usuário
+            document.getElementById('user-name').textContent = user.displayName || 'Usuário';
+            document.getElementById('user-avatar').src = user.photoURL || 'https://via.placeholder.com/32';
+            
+            // Inicializar aplicação
+            initializeApp();
+        }
+
+        function showLogin() {
+            // Mostrar modal de login
+            document.getElementById('login-modal').style.display = 'flex';
+            
+            // Esconder header e conteúdo principal
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('main-content').style.display = 'none';
+        }
+
+        // Sistema de navegação
+        function setupNavigation() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Atualizar navegação ativa
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mostrar seção correspondente
+                    const sectionId = this.getAttribute('data-section');
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(sectionId).classList.add('active');
+                    
+                    // Fechar menu mobile se estiver aberto
+                    document.getElementById('navMenu').classList.remove('show');
+                    
+                    // Atualizar dados específicos da seção
+                    if (sectionId === 'dashboard') {
+                        atualizarDashboard();
+                        carregarFiltrosProdutos();
+                    } else if (sectionId === 'comandas') {
+                        carregarComandas();
+                    } else if (sectionId === 'produtos') {
+                        carregarProdutos();
+                    } else if (sectionId === 'relatorios') {
+                        carregarRelatorios();
+                    }
+                });
+            });
+
+            // Menu mobile toggle
+            document.getElementById('menuToggle').addEventListener('click', function() {
+                document.getElementById('navMenu').classList.toggle('show');
+            });
+        }
 
         // Variáveis globais
         let comandaAtual = null;
@@ -1830,8 +2025,8 @@
             }, 5000);
         }
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
+        // Inicialização da aplicação
+        function initializeApp() {
             // Configurar eventos
             document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
             document.getElementById('cancelar-edicao').addEventListener('click', cancelarEdicao);
@@ -1839,6 +2034,9 @@
             document.getElementById('filtrar-relatorio').addEventListener('click', carregarRelatorios);
             document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
             document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
+            
+            // Configurar navegação
+            setupNavigation();
             
             // Carregar dados iniciais
             carregarProdutos();
@@ -1858,6 +2056,11 @@
             // Configurar datas padrão para os filtros do dashboard
             document.getElementById('filtro-data-inicio').value = dataInicio.toISOString().split('T')[0];
             document.getElementById('filtro-data-fim').value = dataFim.toISOString().split('T')[0];
+        }
+
+        // Inicialização do Firebase Auth
+        document.addEventListener('DOMContentLoaded', function() {
+            initAuth();
         });
     </script>
 </body>
