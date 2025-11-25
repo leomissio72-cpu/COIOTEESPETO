@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão - Restaurante</title>
     <style>
-        /* Seu CSS permanece EXATAMENTE o mesmo */
         :root {
             --primary: #2c3e50;
             --secondary: #3498db;
@@ -23,29 +22,969 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        /* ... (todo o CSS permanece igual) ... */
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
         
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #777;
+        }
+        
+        .comanda-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comanda-total {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: right;
+        }
+        
+        .qty-controls {
+            display: flex;
+            align-items: center;
+        }
+        
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            background-color: #eee;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .qty-value {
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .payment-option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-option:hover {
+            border-color: var(--secondary);
+            background-color: #f8f9fa;
+        }
+        
+        .payment-option.selected {
+            border-color: var(--success);
+            background-color: #e8f5e8;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .badge-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        
+        .product-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .product-item:hover {
+            background-color: #f8f9fa;
+            border-color: var(--secondary);
+        }
+        
+        .product-item.selected {
+            background-color: #e8f5e8;
+            border-color: var(--success);
+        }
+        
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .product-price {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .category-filter {
+            margin-bottom: 15px;
+        }
+        
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        
+        .category-btn {
+            padding: 6px 12px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .category-btn:hover {
+            background-color: #e1e1e1;
+        }
+        
+        .category-btn.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        
+        /* Menu Hamburguer para dispositivos móveis */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        /* Filtros do Dashboard */
+        .dashboard-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .dashboard-filters .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        /* QR Code e PIX */
+        .qr-code-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .qr-code {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+        }
+        
+        .pix-code {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .pix-code-text {
+            font-family: monospace;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+            margin: 15px 0;
+        }
+        
+        .copy-btn {
+            margin-top: 10px;
+        }
+        
+        /* Botões de ação na tabela */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-buttons .btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Media Queries para Responsividade */
+        
+        /* Tablets (768px a 1024px) */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .dashboard-filters {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* Celulares (até 767px) */
         @media (max-width: 767px) {
-            /* ... (todos os media queries permanecem iguais) ... */
+            .container {
+                padding: 10px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .logo {
+                margin-bottom: 10px;
+                font-size: 20px;
+            }
+            
+            nav {
+                width: 100%;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                display: none;
+                width: 100%;
+            }
+            
+            nav ul.show {
+                display: flex;
+            }
+            
+            nav ul li {
+                margin: 5px 0;
+                width: 100%;
+            }
+            
+            nav ul li a {
+                display: block;
+                padding: 10px;
+                text-align: center;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                position: absolute;
+                top: 15px;
+                right: 20px;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .category-buttons {
+                gap: 5px;
+            }
+            
+            .category-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .comanda-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .comanda-item div:last-child {
+                align-self: flex-end;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            h3 {
+                font-size: 18px;
+            }
+            
+            .dashboard-filters {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Todo o HTML permanece EXATAMENTE igual -->
     <header>
         <div class="container header-content">
-            <!-- ... -->
+            <div class="logo">Sistema Restaurante</div>
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
+                    <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
+                    <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
     <div class="container">
-        <!-- ... todas as seções permanecem iguais ... -->
+        <!-- Dashboard -->
+        <section id="dashboard" class="section active">
+            <h1>Dashboard</h1>
+            
+            <!-- Filtros do Dashboard -->
+            <div class="card">
+                <h2>Filtros</h2>
+                <div class="dashboard-filters">
+                    <div class="form-group">
+                        <label for="filtro-produto">Produto</label>
+                        <select id="filtro-produto">
+                            <option value="">Todos os produtos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-categoria">Categoria</label>
+                        <select id="filtro-categoria">
+                            <option value="">Todas as categorias</option>
+                            <option value="Espeto">Espeto</option>
+                            <option value="Copos">Copos</option>
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Facas">Facas</option>
+                            <option value="Itens para Churrasco">Itens para Churrasco</option>
+                            <option value="Espeto Congelado">Espeto Congelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-data-inicio">Data Início</label>
+                        <input type="date" id="filtro-data-inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filtro-data-fim">Data Fim</label>
+                        <input type="date" id="filtro-data-fim">
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" id="aplicar-filtros">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-vendas">R$ 0,00</div>
+                    <div class="stat-label">Total em Vendas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-comandas">0</div>
+                    <div class="stat-label">Comandas Ativas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-produtos">0</div>
+                    <div class="stat-label">Produtos Cadastrados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="vendas-hoje">0</div>
+                    <div class="stat-label">Vendas Hoje</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Comandas Ativas</h2>
+                <div id="comandas-lista-dashboard"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Produtos Mais Vendidos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtos-mais-vendidos">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Comandas -->
+        <section id="comandas" class="section">
+            <h1>Gerenciar Comandas</h1>
+            
+            <div class="card">
+                <div class="alert alert-success hidden" id="comanda-success"></div>
+                <div class="alert alert-danger hidden" id="comanda-error"></div>
+                
+                <div class="form-group">
+                    <label for="cliente">Nome do Cliente</label>
+                    <input type="text" id="cliente" placeholder="Nome do cliente">
+                </div>
+                
+                <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
+            </div>
+            
+            <div class="card">
+                <h2>Comandas Ativas</h2>
+                <div id="comandas-lista"></div>
+            </div>
+        </section>
+
+        <!-- Produtos -->
+        <section id="produtos" class="section">
+            <h1>Gerenciar Produtos</h1>
+            
+            <div class="card">
+                <div class="alert alert-success hidden" id="produto-success"></div>
+                <div class="alert alert-danger hidden" id="produto-error"></div>
+                
+                <div class="form-group">
+                    <label for="nome-produto">Nome do Produto</label>
+                    <input type="text" id="nome-produto" placeholder="Nome do produto">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria">
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Espeto">Espeto</option>
+                        <option value="Copos">Copos</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Facas">Facas</option>
+                        <option value="Itens para Churrasco">Itens para Churrasco</option>
+                        <option value="Espeto Congelado">Espeto Congelado</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preco">Preço (R$)</label>
+                    <input type="number" id="preco" min="0" step="0.01" placeholder="Preço do produto">
+                </div>
+                
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" rows="3" placeholder="Descrição do produto"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Produtos Cadastrados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-produtos">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Relatórios -->
+        <section id="relatorios" class="section">
+            <h1>Relatórios de Vendas</h1>
+            
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="data-inicio">Data de Início</label>
+                        <input type="date" id="data-inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="data-fim">Data de Fim</label>
+                        <input type="date" id="data-fim">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="filtrar-relatorio">Filtrar</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" id="exportar-relatorio">Exportar para CSV</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Relatório de Vendas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Comanda</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Pagamento</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relatorio-vendas">
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
-    <!-- ... todos os modals permanecem iguais ... -->
+    <!-- Modal para adicionar itens à comanda -->
+    <div id="modal-comanda" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Itens à Comanda</h3>
+                <button class="btn btn-primary" id="salvar-fechar-comanda">OK</button>
+            </div>
+            
+            <div class="category-filter">
+                <label>Filtrar por Categoria:</label>
+                <div class="category-buttons" id="category-buttons">
+                    <!-- Botões de categoria serão gerados dinamicamente -->
+                </div>
+            </div>
+            
+            <div class="product-grid" id="product-grid">
+                <!-- Produtos serão gerados dinamicamente -->
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantidade">Quantidade</label>
+                    <input type="number" id="quantidade" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" id="adicionar-item-comanda" style="width: 100%;">Adicionar à Comanda</button>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 20px;">Itens na Comanda</h3>
+            <div id="itens-comanda-modal"></div>
+            
+            <div class="comanda-total" id="total-comanda-modal">Total: R$ 0,00</div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-success" id="fechar-comanda">Fechar Comanda</button>
+                <button class="btn btn-warning" id="cancelar-comanda">Cancelar Comanda</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para forma de pagamento -->
+    <div id="modal-pagamento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Forma de Pagamento</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="payment-options">
+                <div class="payment-option" data-payment="dinheiro">
+                    <h4>Dinheiro</h4>
+                </div>
+                <div class="payment-option" data-payment="pix">
+                    <h4>PIX</h4>
+                </div>
+                <div class="payment-option" data-payment="debito">
+                    <h4>Cartão de Débito</h4>
+                </div>
+                <div class="payment-option" data-payment="credito">
+                    <h4>Cartão de Crédito</h4>
+                </div>
+            </div>
+            
+            <!-- Código PIX (aparece apenas quando PIX é selecionado) -->
+            <div id="pix-code-container" class="pix-code hidden">
+                <h4>Pagamento via PIX</h4>
+                <p>Use o código abaixo para realizar o pagamento:</p>
+                <div class="pix-code-text" id="pix-code-text">
+                    00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-426614174000520400005303986540510.005802BR5913NOMEDOLOJA6008CIDADE62190515RP1234567890126304
+                </div>
+                <button class="btn btn-secondary copy-btn" id="copiar-pix">Copiar Código PIX</button>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-success" id="confirmar-pagamento" style="flex: 1;">Confirmar Pagamento</button>
+                <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para visualizar detalhes da venda -->
+    <div id="modal-venda" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes da Venda</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div id="detalhes-venda"></div>
+        </div>
+    </div>
 
     <script>
-        // URL do Google Apps Script
+        // URL do seu Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyfazWub9WjQbNlhgm2NDps5kdnJqByVf0WxctNlc/dev';
 
         // Função para chamar o Google Apps Script
@@ -70,13 +1009,70 @@
             }
         }
 
-        // Modifique todas as funções que usam google.script.run para usar callGoogleScript
-        // Exemplo de como modificar:
+        // Sistema de navegação
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Atualizar navegação ativa
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Mostrar seção correspondente
+                const sectionId = this.getAttribute('data-section');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Fechar menu mobile se estiver aberto
+                document.getElementById('navMenu').classList.remove('show');
+                
+                // Atualizar dados específicos da seção
+                if (sectionId === 'dashboard') {
+                    atualizarDashboard();
+                    carregarFiltrosProdutos();
+                } else if (sectionId === 'comandas') {
+                    carregarComandas();
+                } else if (sectionId === 'produtos') {
+                    carregarProdutos();
+                } else if (sectionId === 'relatorios') {
+                    carregarRelatorios();
+                }
+            });
+        });
 
+        // Menu mobile toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('show');
+        });
+
+        // Variáveis globais
+        let comandaAtual = null;
+        let formaPagamento = null;
+        let produtoSelecionado = null;
+        let categoriaAtual = '';
+        let filtrosDashboard = {
+            produto: '',
+            categoria: '',
+            dataInicio: '',
+            dataFim: ''
+        };
+        let produtoEmEdicao = null;
+
+        // Categorias disponíveis
+        const categorias = [
+            "Espeto",
+            "Copos", 
+            "Bebidas",
+            "Facas",
+            "Itens para Churrasco",
+            "Espeto Congelado"
+        ];
+
+        // Funções para gerenciar produtos
         async function carregarProdutos() {
             try {
                 const result = await callGoogleScript('getProdutos');
-                const produtos = result.data || [];
+                const produtos = result.data;
                 const listaProdutos = document.getElementById('lista-produtos');
                 
                 listaProdutos.innerHTML = '';
@@ -106,6 +1102,29 @@
             }
         }
 
+        async function carregarFiltrosProdutos() {
+            try {
+                const result = await callGoogleScript('getProdutos');
+                const produtos = result.data;
+                const filtroProduto = document.getElementById('filtro-produto');
+                
+                // Limpar opções existentes (mantendo a primeira)
+                while (filtroProduto.children.length > 1) {
+                    filtroProduto.removeChild(filtroProduto.lastChild);
+                }
+                
+                // Adicionar produtos
+                produtos.forEach(produto => {
+                    const option = document.createElement('option');
+                    option.value = produto.id;
+                    option.textContent = produto.nome;
+                    filtroProduto.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar filtros de produtos:', error);
+            }
+        }
+
         async function adicionarProduto() {
             const nome = document.getElementById('nome-produto').value;
             const categoria = document.getElementById('categoria').value;
@@ -118,15 +1137,32 @@
             }
             
             try {
-                const novoProduto = {
-                    nome,
-                    categoria,
-                    preco,
-                    descricao
-                };
-                
-                await callGoogleScript('adicionarProduto', novoProduto);
-                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+                if (produtoEmEdicao !== null) {
+                    // Modo edição - atualizar produto existente
+                    const result = await callGoogleScript('getProdutos');
+                    const produtos = result.data;
+                    const produto = produtos.find(p => p.id === produtoEmEdicao);
+                    
+                    produto.nome = nome;
+                    produto.categoria = categoria;
+                    produto.preco = preco;
+                    produto.descricao = descricao;
+                    
+                    await callGoogleScript('atualizarProduto', produto);
+                    mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
+                    cancelarEdicao();
+                } else {
+                    // Modo adição - adicionar novo produto
+                    const novoProduto = {
+                        nome,
+                        categoria,
+                        preco,
+                        descricao
+                    };
+                    
+                    await callGoogleScript('adicionarProduto', novoProduto);
+                    mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+                }
                 
                 // Limpar formulário
                 document.getElementById('nome-produto').value = '';
@@ -135,6 +1171,7 @@
                 document.getElementById('descricao').value = '';
                 
                 carregarProdutos();
+                carregarFiltrosProdutos();
                 atualizarDashboard();
             } catch (error) {
                 console.error('Erro ao adicionar produto:', error);
@@ -145,7 +1182,7 @@
         async function editarProduto(id) {
             try {
                 const result = await callGoogleScript('getProdutos');
-                const produtos = result.data || [];
+                const produtos = result.data;
                 const produto = produtos.find(p => p.id === id);
                 
                 if (!produto) {
@@ -171,11 +1208,25 @@
             }
         }
 
+        function cancelarEdicao() {
+            // Limpar formulário
+            document.getElementById('nome-produto').value = '';
+            document.getElementById('categoria').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('descricao').value = '';
+            
+            // Voltar para modo adição
+            produtoEmEdicao = null;
+            document.getElementById('adicionar-produto').textContent = 'Adicionar Produto';
+            document.getElementById('cancelar-edicao').classList.add('hidden');
+        }
+
         async function excluirProduto(id) {
             if (confirm('Tem certeza que deseja excluir este produto?')) {
                 try {
                     await callGoogleScript('excluirProduto', { id });
                     carregarProdutos();
+                    carregarFiltrosProdutos();
                     atualizarDashboard();
                     
                     // Se estava editando o produto excluído, cancelar a edição
@@ -188,14 +1239,11 @@
             }
         }
 
-        // Modifique TODAS as outras funções seguindo o mesmo padrão:
-        // Substitua google.script.run por callGoogleScript
-
-        // Funções para comandas
+        // Funções para gerenciar comandas
         async function carregarComandas() {
             try {
                 const result = await callGoogleScript('getComandas');
-                const comandas = result.data || [];
+                const comandas = result.data;
                 const listaComandas = document.getElementById('comandas-lista');
                 
                 listaComandas.innerHTML = '';
@@ -207,7 +1255,7 @@
                 
                 for (const comanda of comandas) {
                     const itensResult = await callGoogleScript('getItensComanda', { comandaId: comanda.id });
-                    const itens = itensResult.data || [];
+                    const itens = itensResult.data;
                     const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
                     
                     const div = document.createElement('div');
@@ -255,25 +1303,705 @@
             }
         }
 
-        // Continue modificando todas as outras funções...
+        async function abrirModalComanda(id) {
+            const modal = document.getElementById('modal-comanda');
+            modal.style.display = 'flex';
+            comandaAtual = id;
+            
+            // Resetar seleção
+            produtoSelecionado = null;
+            categoriaAtual = '';
+            
+            // Criar botões de categoria
+            criarBotoesCategoria();
+            
+            // Carregar produtos
+            carregarProdutosModal();
+            
+            // Atualizar itens da comanda
+            atualizarItensComandaModal(id);
+            
+            // Configurar eventos
+            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(id);
+            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(id);
+            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(id);
+            document.getElementById('salvar-fechar-comanda').onclick = () => {
+                modal.style.display = 'none';
+                carregarComandas();
+                atualizarDashboard();
+            };
+        }
 
-        // IMPORTANTE: Você precisará modificar TODAS as funções que fazem chamadas ao Google Apps Script
-        // Seguindo o mesmo padrão mostrado acima
-
-        // Sistema de navegação (mantido igual)
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // ... (código permanece igual)
+        function criarBotoesCategoria() {
+            const container = document.getElementById('category-buttons');
+            container.innerHTML = '';
+            
+            // Botão para mostrar todos
+            const btnTodos = document.createElement('button');
+            btnTodos.className = 'category-btn active';
+            btnTodos.textContent = 'Todos';
+            btnTodos.onclick = () => filtrarProdutosPorCategoria('');
+            container.appendChild(btnTodos);
+            
+            // Botões para cada categoria
+            categorias.forEach(categoria => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = categoria;
+                btn.onclick = () => filtrarProdutosPorCategoria(categoria);
+                container.appendChild(btn);
             });
-        });
+        }
 
-        // ... (restante do código JavaScript permanece igual)
+        function filtrarProdutosPorCategoria(categoria) {
+            categoriaAtual = categoria;
+            
+            // Atualizar botões ativos
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Encontrar e ativar o botão correto
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (categoria === '' && btn.textContent === 'Todos') {
+                    btn.classList.add('active');
+                } else if (btn.textContent === categoria) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Recarregar produtos com filtro
+            carregarProdutosModal();
+        }
+
+        async function carregarProdutosModal() {
+            try {
+                const result = await callGoogleScript('getProdutos');
+                const produtos = result.data;
+                const container = document.getElementById('product-grid');
+                container.innerHTML = '';
+                
+                // Filtrar produtos por categoria
+                let produtosFiltrados = produtos;
+                if (categoriaAtual) {
+                    produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
+                }
+                
+                if (produtosFiltrados.length === 0) {
+                    container.innerHTML = '<p>Nenhum produto encontrado</p>';
+                    return;
+                }
+                
+                produtosFiltrados.forEach(produto => {
+                    const div = document.createElement('div');
+                    div.className = 'product-item';
+                    if (produtoSelecionado && produtoSelecionado.id === produto.id) {
+                        div.classList.add('selected');
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="product-name">${produto.nome}</div>
+                        <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
+                        <small>${produto.categoria}</small>
+                    `;
+                    
+                    div.onclick = () => {
+                        // Desselecionar produto anterior
+                        document.querySelectorAll('.product-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        
+                        // Selecionar produto atual
+                        div.classList.add('selected');
+                        produtoSelecionado = produto;
+                    };
+                    
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar produtos no modal:', error);
+            }
+        }
+
+        async function abrirModalPagamento(id) {
+            try {
+                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
+                const itens = itensResult.data;
+                
+                if (itens.length === 0) {
+                    alert('Não é possível fechar uma comanda sem itens.');
+                    return;
+                }
+                
+                // Fechar modal da comanda
+                document.getElementById('modal-comanda').style.display = 'none';
+                
+                // Abrir modal de pagamento
+                const modalPagamento = document.getElementById('modal-pagamento');
+                modalPagamento.style.display = 'flex';
+                
+                // Resetar seleção de pagamento
+                formaPagamento = null;
+                document.querySelectorAll('.payment-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Esconder código PIX inicialmente
+                document.getElementById('pix-code-container').classList.add('hidden');
+                
+                // Configurar eventos de seleção de pagamento
+                document.querySelectorAll('.payment-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        formaPagamento = this.getAttribute('data-payment');
+                        
+                        // Mostrar código PIX se selecionado
+                        if (formaPagamento === 'pix') {
+                            document.getElementById('pix-code-container').classList.remove('hidden');
+                        } else {
+                            document.getElementById('pix-code-container').classList.add('hidden');
+                        }
+                    });
+                });
+                
+                // Configurar evento para copiar código PIX
+                document.getElementById('copiar-pix').onclick = function() {
+                    const pixCode = document.getElementById('pix-code-text').textContent;
+                    navigator.clipboard.writeText(pixCode).then(function() {
+                        alert('Código PIX copiado para a área de transferência!');
+                    });
+                };
+                
+                // Configurar eventos dos botões
+                document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(id);
+                document.getElementById('cancelar-pagamento').onclick = () => {
+                    modalPagamento.style.display = 'none';
+                    document.getElementById('modal-comanda').style.display = 'flex';
+                };
+                
+                // Fechar modal
+                document.querySelector('#modal-pagamento .close-btn').onclick = () => {
+                    modalPagamento.style.display = 'none';
+                    document.getElementById('modal-comanda').style.display = 'flex';
+                };
+            } catch (error) {
+                console.error('Erro ao abrir modal de pagamento:', error);
+            }
+        }
+
+        async function atualizarItensComandaModal(id) {
+            try {
+                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
+                const itens = itensResult.data;
+                const container = document.getElementById('itens-comanda-modal');
+                const totalElement = document.getElementById('total-comanda-modal');
+                
+                container.innerHTML = '';
+                
+                if (itens.length === 0) {
+                    container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
+                    totalElement.textContent = 'Total: R$ 0,00';
+                    return;
+                }
+                
+                let total = 0;
+                
+                for (const item of itens) {
+                    const produtosResult = await callGoogleScript('getProdutos');
+                    const produtos = produtosResult.data;
+                    const produto = produtos.find(p => p.id === item.produtoId);
+                    
+                    const itemTotal = item.precoUnitario * item.quantidade;
+                    total += itemTotal;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'comanda-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>${produto.nome}</strong><br>
+                            <small>R$ ${item.precoUnitario.toFixed(2)} x ${item.quantidade}</small>
+                        </div>
+                        <div>
+                            <span>R$ ${itemTotal.toFixed(2)}</span>
+                            <button class="btn btn-danger" onclick="removerItemComanda('${id}', '${item.id}')">Remover</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+                
+                totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
+            } catch (error) {
+                console.error('Erro ao atualizar itens da comanda:', error);
+            }
+        }
+
+        async function adicionarItemComanda(id) {
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            
+            if (!produtoSelecionado) {
+                alert('Por favor, selecione um produto.');
+                return;
+            }
+            
+            if (!quantidade || quantidade < 1) {
+                alert('Por favor, informe uma quantidade válida.');
+                return;
+            }
+            
+            try {
+                const novoItem = {
+                    comandaId: id,
+                    produtoId: produtoSelecionado.id,
+                    quantidade: quantidade,
+                    precoUnitario: produtoSelecionado.preco
+                };
+                
+                await callGoogleScript('adicionarItemComanda', novoItem);
+                atualizarItensComandaModal(id);
+                
+                // Resetar seleção
+                produtoSelecionado = null;
+                document.querySelectorAll('.product-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+            } catch (error) {
+                console.error('Erro ao adicionar item à comanda:', error);
+            }
+        }
+
+        async function removerItemComanda(comandaId, itemId) {
+            try {
+                // Para remover um item específico, precisamos excluir todos os itens e readicionar os que queremos manter
+                const itensResult = await callGoogleScript('getItensComanda', { comandaId: comandaId });
+                const itens = itensResult.data;
+                const itensFiltrados = itens.filter(item => item.id !== itemId);
+                
+                // Excluir todos os itens da comanda
+                await callGoogleScript('excluirItensComanda', { comandaId: comandaId });
+                
+                // Adicionar os itens filtrados de volta
+                for (const item of itensFiltrados) {
+                    await callGoogleScript('adicionarItemComanda', item);
+                }
+                
+                atualizarItensComandaModal(comandaId);
+            } catch (error) {
+                console.error('Erro ao remover item da comanda:', error);
+            }
+        }
+
+        async function fecharComanda(id) {
+            if (!formaPagamento) {
+                alert('Por favor, selecione uma forma de pagamento.');
+                return;
+            }
+            
+            try {
+                const comandasResult = await callGoogleScript('getComandas');
+                const comandas = comandasResult.data;
+                const comanda = comandas.find(c => c.id === id);
+                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
+                const itens = itensResult.data;
+                
+                const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
+                
+                // Registrar venda
+                const venda = {
+                    comandaId: id,
+                    cliente: comanda.cliente,
+                    total: total,
+                    formaPagamento: formaPagamento,
+                    data: new Date().toISOString()
+                };
+                
+                await callGoogleScript('adicionarVenda', venda);
+                
+                // Atualizar status da comanda
+                comanda.status = 'fechada';
+                await callGoogleScript('atualizarComanda', comanda);
+                
+                // Fechar modal
+                document.getElementById('modal-pagamento').style.display = 'none';
+                
+                alert(`Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)} - Forma de pagamento: ${formaPagamento}`);
+                carregarComandas();
+                atualizarDashboard();
+            } catch (error) {
+                console.error('Erro ao fechar comanda:', error);
+            }
+        }
+
+        async function cancelarComanda(id) {
+            if (confirm('Tem certeza que deseja cancelar esta comanda?')) {
+                try {
+                    const comandasResult = await callGoogleScript('getComandas');
+                    const comandas = comandasResult.data;
+                    const comanda = comandas.find(c => c.id === id);
+                    
+                    // Atualizar status da comanda
+                    comanda.status = 'cancelada';
+                    await callGoogleScript('atualizarComanda', comanda);
+                    
+                    // Fechar modal
+                    document.getElementById('modal-comanda').style.display = 'none';
+                    
+                    carregarComandas();
+                    atualizarDashboard();
+                } catch (error) {
+                    console.error('Erro ao cancelar comanda:', error);
+                }
+            }
+        }
+
+        // Funções para relatórios
+        async function carregarRelatorios() {
+            const dataInicio = document.getElementById('data-inicio').value;
+            const dataFim = document.getElementById('data-fim').value;
+            
+            try {
+                const vendasResult = await callGoogleScript('getVendas');
+                let vendas = vendasResult.data;
+                
+                // Filtrar por data se especificado
+                if (dataInicio) {
+                    vendas = vendas.filter(venda => venda.data >= dataInicio);
+                }
+                
+                if (dataFim) {
+                    // Adicionar um dia para incluir vendas do dia final
+                    const fim = new Date(dataFim);
+                    fim.setDate(fim.getDate() + 1);
+                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                }
+                
+                const tabela = document.getElementById('relatorio-vendas');
+                tabela.innerHTML = '';
+                
+                if (vendas.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
+                    return;
+                }
+                
+                vendas.forEach((venda, index) => {
+                    const data = new Date(venda.data);
+                    const dataFormatada = data.toLocaleDateString('pt-BR');
+                    
+                    // Formatar forma de pagamento
+                    let pagamentoFormatado = '';
+                    switch(venda.formaPagamento) {
+                        case 'dinheiro':
+                            pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
+                            break;
+                        case 'pix':
+                            pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
+                            break;
+                        case 'debito':
+                            pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
+                            break;
+                        case 'credito':
+                            pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
+                            break;
+                        default:
+                            pagamentoFormatado = '<span class="badge">N/A</span>';
+                    }
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dataFormatada}</td>
+                        <td>#${venda.comandaId}</td>
+                        <td>${venda.cliente || 'Cliente não informado'}</td>
+                        <td>R$ ${venda.total.toFixed(2)}</td>
+                        <td>${pagamentoFormatado}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="verDetalhesVenda('${venda.id}')">Ver Detalhes</button>
+                        </td>
+                    `;
+                    tabela.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+            }
+        }
+
+        async function verDetalhesVenda(id) {
+            try {
+                const vendasResult = await callGoogleScript('getVendas');
+                const vendas = vendasResult.data;
+                const venda = vendas.find(v => v.id === id);
+                const itensResult = await callGoogleScript('getItensComanda', { comandaId: venda.comandaId });
+                const itens = itensResult.data;
+                
+                // Formatar forma de pagamento
+                let pagamentoTexto = '';
+                switch(venda.formaPagamento) {
+                    case 'dinheiro':
+                        pagamentoTexto = 'Dinheiro';
+                        break;
+                    case 'pix':
+                        pagamentoTexto = 'PIX';
+                        break;
+                    case 'debito':
+                        pagamentoTexto = 'Cartão de Débito';
+                        break;
+                    case 'credito':
+                        pagamentoTexto = 'Cartão de Crédito';
+                        break;
+                    default:
+                        pagamentoTexto = 'Não informado';
+                }
+                
+                const modal = document.getElementById('modal-venda');
+                const container = document.getElementById('detalhes-venda');
+                
+                let itensHTML = '';
+                for (const item of itens) {
+                    const produtosResult = await callGoogleScript('getProdutos');
+                    const produtos = produtosResult.data;
+                    const produto = produtos.find(p => p.id === item.produtoId);
+                    
+                    itensHTML += `<li>${item.quantidade}x ${produto.nome} - R$ ${item.precoUnitario.toFixed(2)} = R$ ${(item.precoUnitario * item.quantidade).toFixed(2)}</li>`;
+                }
+                
+                container.innerHTML = `
+                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+                    <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
+                    <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
+                    <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                    <h4>Itens:</h4>
+                    <ul>${itensHTML}</ul>
+                    <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
+                `;
+                
+                modal.style.display = 'flex';
+                
+                // Fechar modal
+                document.querySelector('#modal-venda .close-btn').onclick = () => {
+                    modal.style.display = 'none';
+                };
+            } catch (error) {
+                console.error('Erro ao ver detalhes da venda:', error);
+            }
+        }
+
+        async function exportarRelatorio() {
+            try {
+                const vendasResult = await callGoogleScript('getVendas');
+                let vendas = vendasResult.data;
+                
+                const dataInicio = document.getElementById('data-inicio').value;
+                const dataFim = document.getElementById('data-fim').value;
+                
+                // Filtrar por data se especificado
+                if (dataInicio) {
+                    vendas = vendas.filter(venda => venda.data >= dataInicio);
+                }
+                
+                if (dataFim) {
+                    // Adicionar um dia para incluir vendas do dia final
+                    const fim = new Date(dataFim);
+                    fim.setDate(fim.getDate() + 1);
+                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                }
+                
+                if (vendas.length === 0) {
+                    alert('Nenhuma venda para exportar.');
+                    return;
+                }
+                
+                // Criar CSV
+                let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
+                
+                vendas.forEach(venda => {
+                    const data = new Date(venda.data);
+                    const dataFormatada = data.toLocaleDateString('pt-BR');
+                    
+                    // Formatar forma de pagamento
+                    let pagamentoTexto = '';
+                    switch(venda.formaPagamento) {
+                        case 'dinheiro':
+                            pagamentoTexto = 'Dinheiro';
+                            break;
+                        case 'pix':
+                            pagamentoTexto = 'PIX';
+                            break;
+                        case 'debito':
+                            pagamentoTexto = 'Cartão de Débito';
+                            break;
+                        case 'credito':
+                            pagamentoTexto = 'Cartão de Crédito';
+                            break;
+                        default:
+                            pagamentoTexto = 'Não informado';
+                    }
+                    
+                    csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
+                });
+                
+                // Criar e baixar arquivo
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Erro ao exportar relatório:', error);
+            }
+        }
+
+        // Funções para dashboard
+        function aplicarFiltrosDashboard() {
+            // Capturar valores dos filtros
+            filtrosDashboard.produto = document.getElementById('filtro-produto').value;
+            filtrosDashboard.categoria = document.getElementById('filtro-categoria').value;
+            filtrosDashboard.dataInicio = document.getElementById('filtro-data-inicio').value;
+            filtrosDashboard.dataFim = document.getElementById('filtro-data-fim').value;
+            
+            // Atualizar dashboard com filtros
+            atualizarDashboard();
+        }
+
+        async function atualizarDashboard() {
+            try {
+                // Estatísticas gerais
+                const produtosResult = await callGoogleScript('getProdutos');
+                const produtos = produtosResult.data;
+                const comandasResult = await callGoogleScript('getComandas');
+                const comandas = comandasResult.data;
+                const vendasResult = await callGoogleScript('getVendas');
+                let vendas = vendasResult.data;
+                
+                // Aplicar filtros nas vendas
+                if (filtrosDashboard.dataInicio) {
+                    vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
+                }
+                
+                if (filtrosDashboard.dataFim) {
+                    const fim = new Date(filtrosDashboard.dataFim);
+                    fim.setDate(fim.getDate() + 1);
+                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                }
+                
+                if (filtrosDashboard.categoria) {
+                    // Filtrar vendas por categoria (implementação simplificada)
+                    // Em uma implementação real, você precisaria verificar os itens de cada venda
+                }
+                
+                if (filtrosDashboard.produto) {
+                    // Filtrar vendas por produto (implementação simplificada)
+                    // Em uma implementação real, você precisaria verificar os itens de cada venda
+                }
+                
+                // Total em vendas
+                const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
+                document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
+                
+                // Comandas ativas
+                const comandasAtivas = comandas.filter(comanda => comanda.status === 'ativa');
+                document.getElementById('total-comandas').textContent = comandasAtivas.length;
+                
+                // Produtos cadastrados
+                document.getElementById('total-produtos').textContent = produtos.length;
+                
+                // Vendas hoje
+                const hoje = new Date().toISOString().split('T')[0];
+                const vendasHoje = vendas.filter(venda => venda.data.startsWith(hoje)).length;
+                document.getElementById('vendas-hoje').textContent = vendasHoje;
+                
+                // Comandas ativas no dashboard
+                const comandasDashboard = document.getElementById('comandas-lista-dashboard');
+                comandasDashboard.innerHTML = '';
+                
+                if (comandasAtivas.length === 0) {
+                    comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                } else {
+                    for (const comanda of comandasAtivas) {
+                        const itensResult = await callGoogleScript('getItensComanda', { comandaId: comanda.id });
+                        const itens = itensResult.data;
+                        const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
+                        
+                        const div = document.createElement('div');
+                        div.className = 'comanda-item';
+                        div.innerHTML = `
+                            <div>
+                                <strong>Comanda #${comanda.id}</strong><br>
+                                <small>${comanda.cliente || 'Cliente não informado'}</small>
+                            </div>
+                            <div>R$ ${total.toFixed(2)}</div>
+                        `;
+                        comandasDashboard.appendChild(div);
+                    }
+                }
+                
+                // Produtos mais vendidos
+                const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
+                produtosMaisVendidos.innerHTML = '';
+                
+                if (vendas.length === 0) {
+                    produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
+                    return;
+                }
+                
+                // Agrupar produtos vendidos
+                const produtosVendidos = {};
+                
+                for (const venda of vendas) {
+                    const itensResult = await callGoogleScript('getItensComanda', { comandaId: venda.comandaId });
+                    const itens = itensResult.data;
+                    
+                    for (const item of itens) {
+                        const produto = produtos.find(p => p.id === item.produtoId);
+                        
+                        if (!produtosVendidos[item.produtoId]) {
+                            produtosVendidos[item.produtoId] = {
+                                nome: produto.nome,
+                                quantidade: 0,
+                                total: 0
+                            };
+                        }
+                        
+                        produtosVendidos[item.produtoId].quantidade += item.quantidade;
+                        produtosVendidos[item.produtoId].total += item.precoUnitario * item.quantidade;
+                    }
+                }
+                
+                // Ordenar por quantidade (mais vendidos primeiro)
+                const produtosOrdenados = Object.values(produtosVendidos)
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5); // Top 5
+                
+                produtosOrdenados.forEach(produto => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${produto.nome}</td>
+                        <td>${produto.quantidade}</td>
+                        <td>R$ ${produto.total.toFixed(2)}</td>
+                    `;
+                    produtosMaisVendidos.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro ao atualizar dashboard:', error);
+            }
+        }
+
+        // Funções auxiliares
+        function mostrarAlerta(id, mensagem) {
+            const alerta = document.getElementById(id);
+            alerta.textContent = mensagem;
+            alerta.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alerta.classList.add('hidden');
+            }, 5000);
+        }
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // Configurar eventos (mantido igual)
+            // Configurar eventos
             document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
             document.getElementById('cancelar-edicao').addEventListener('click', cancelarEdicao);
             document.getElementById('criar-comanda').addEventListener('click', criarComanda);
@@ -283,13 +2011,23 @@
             
             // Carregar dados iniciais
             carregarProdutos();
+            carregarFiltrosProdutos();
             carregarComandas();
             carregarRelatorios();
             atualizarDashboard();
             
-            // ... (restante da inicialização permanece igual)
+            // Configurar data padrão para relatórios (últimos 7 dias)
+            const dataFim = new Date();
+            const dataInicio = new Date();
+            dataInicio.setDate(dataInicio.getDate() - 7);
+            
+            document.getElementById('data-inicio').value = dataInicio.toISOString().split('T')[0];
+            document.getElementById('data-fim').value = dataFim.toISOString().split('T')[0];
+            
+            // Configurar datas padrão para os filtros do dashboard
+            document.getElementById('filtro-data-inicio').value = dataInicio.toISOString().split('T')[0];
+            document.getElementById('filtro-data-fim').value = dataFim.toISOString().split('T')[0];
         });
-
     </script>
 </body>
 </html>
