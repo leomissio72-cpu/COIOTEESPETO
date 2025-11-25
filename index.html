@@ -451,20 +451,6 @@
             margin: 15px 0;
         }
         
-        .pix-code-text {
-            font-family: monospace;
-            background-color: white;
-            padding: 15px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            word-break: break-all;
-            margin: 15px 0;
-        }
-        
-        .copy-btn {
-            margin-top: 10px;
-        }
-        
         .action-buttons {
             display: flex;
             gap: 5px;
@@ -928,14 +914,13 @@
                 </div>
             </div>
             
-            <!-- Código PIX (aparece apenas quando PIX é selecionado) -->
+            <!-- QR Code PIX (aparece apenas quando PIX é selecionado) -->
             <div id="pix-code-container" class="pix-code hidden">
                 <h4>Pagamento via PIX</h4>
-                <p>Use o código abaixo para realizar o pagamento:</p>
-                <div class="pix-code-text" id="pix-code-text">
-                    00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-426614174000520400005303986540510.005802BR5913NOMEDOLOJA6008CIDADE62190515RP1234567890126304
+                <p>Escaneie o QR Code abaixo para pagar:</p>
+                <div class="qr-code-container">
+                    <img src="1- QR CODECaptura de tela 2025-11-25 151723.png" alt="QR Code PIX" class="qr-code">
                 </div>
-                <button class="btn btn-secondary copy-btn" id="copiar-pix">Copiar Código PIX</button>
             </div>
             
             <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -1374,7 +1359,7 @@
                     this.classList.add('selected');
                     formaPagamento = this.getAttribute('data-payment');
                     
-                    // Mostrar código PIX se selecionado
+                    // Mostrar QR Code PIX se selecionado
                     if (formaPagamento === 'pix') {
                         document.getElementById('pix-code-container').classList.remove('hidden');
                     } else {
@@ -1382,14 +1367,6 @@
                     }
                 });
             });
-            
-            // Configurar evento para copiar código PIX
-            document.getElementById('copiar-pix').onclick = function() {
-                const pixCode = document.getElementById('pix-code-text').textContent;
-                navigator.clipboard.writeText(pixCode).then(function() {
-                    alert('Código PIX copiado para a área de transferência!');
-                });
-            };
             
             // Configurar eventos dos botões
             document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
