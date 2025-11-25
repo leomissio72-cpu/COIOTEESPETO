@@ -650,6 +650,8 @@
                 flex-direction: column;
             }
         }
+        
+        /* Notebooks (1025px e acima) - Já está otimizado no CSS base */
     </style>
 </head>
 <body>
@@ -984,31 +986,6 @@
     </div>
 
     <script>
-        // URL do seu Google Apps Script
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyfazWub9WjQbNlhgm2NDps5kdnJqByVf0WxctNlc/dev';
-
-        // Função para chamar o Google Apps Script
-        async function callGoogleScript(functionName, data = {}) {
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        function: functionName,
-                        data: data
-                    })
-                });
-                
-                const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('Erro ao chamar Google Script:', error);
-                throw error;
-            }
-        }
-
         // Sistema de navegação
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
@@ -1069,63 +1046,53 @@
         ];
 
         // Funções para gerenciar produtos
-        async function carregarProdutos() {
-            try {
-                const result = await callGoogleScript('getProdutos');
-                const produtos = result.data;
-                const listaProdutos = document.getElementById('lista-produtos');
-                
-                listaProdutos.innerHTML = '';
-                
-                if (produtos.length === 0) {
-                    listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
-                    return;
-                }
-                
-                produtos.forEach((produto, index) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${produto.nome}</td>
-                        <td>${produto.categoria}</td>
-                        <td>R$ ${produto.preco.toFixed(2)}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-warning" onclick="editarProduto('${produto.id}')">Editar</button>
-                                <button class="btn btn-danger" onclick="excluirProduto('${produto.id}')">Excluir</button>
-                            </div>
-                        </td>
-                    `;
-                    listaProdutos.appendChild(tr);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
+        function carregarProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const listaProdutos = document.getElementById('lista-produtos');
+            
+            listaProdutos.innerHTML = '';
+            
+            if (produtos.length === 0) {
+                listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
+                return;
             }
+            
+            produtos.forEach((produto, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${produto.nome}</td>
+                    <td>${produto.categoria}</td>
+                    <td>R$ ${produto.preco.toFixed(2)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-warning" onclick="editarProduto(${index})">Editar</button>
+                            <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
+                        </div>
+                    </td>
+                `;
+                listaProdutos.appendChild(tr);
+            });
         }
 
-        async function carregarFiltrosProdutos() {
-            try {
-                const result = await callGoogleScript('getProdutos');
-                const produtos = result.data;
-                const filtroProduto = document.getElementById('filtro-produto');
-                
-                // Limpar opções existentes (mantendo a primeira)
-                while (filtroProduto.children.length > 1) {
-                    filtroProduto.removeChild(filtroProduto.lastChild);
-                }
-                
-                // Adicionar produtos
-                produtos.forEach(produto => {
-                    const option = document.createElement('option');
-                    option.value = produto.id;
-                    option.textContent = produto.nome;
-                    filtroProduto.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar filtros de produtos:', error);
+        function carregarFiltrosProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const filtroProduto = document.getElementById('filtro-produto');
+            
+            // Limpar opções existentes (mantendo a primeira)
+            while (filtroProduto.children.length > 1) {
+                filtroProduto.removeChild(filtroProduto.lastChild);
             }
+            
+            // Adicionar produtos
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                option.textContent = produto.nome;
+                filtroProduto.appendChild(option);
+            });
         }
 
-        async function adicionarProduto() {
+        function adicionarProduto() {
             const nome = document.getElementById('nome-produto').value;
             const categoria = document.getElementById('categoria').value;
             const preco = parseFloat(document.getElementById('preco').value);
@@ -1136,76 +1103,64 @@
                 return;
             }
             
-            try {
-                if (produtoEmEdicao !== null) {
-                    // Modo edição - atualizar produto existente
-                    const result = await callGoogleScript('getProdutos');
-                    const produtos = result.data;
-                    const produto = produtos.find(p => p.id === produtoEmEdicao);
-                    
-                    produto.nome = nome;
-                    produto.categoria = categoria;
-                    produto.preco = preco;
-                    produto.descricao = descricao;
-                    
-                    await callGoogleScript('atualizarProduto', produto);
-                    mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
-                    cancelarEdicao();
-                } else {
-                    // Modo adição - adicionar novo produto
-                    const novoProduto = {
-                        nome,
-                        categoria,
-                        preco,
-                        descricao
-                    };
-                    
-                    await callGoogleScript('adicionarProduto', novoProduto);
-                    mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
-                }
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            
+            if (produtoEmEdicao !== null) {
+                // Modo edição - atualizar produto existente
+                produtos[produtoEmEdicao] = {
+                    ...produtos[produtoEmEdicao],
+                    nome,
+                    categoria,
+                    preco,
+                    descricao
+                };
                 
-                // Limpar formulário
-                document.getElementById('nome-produto').value = '';
-                document.getElementById('categoria').value = '';
-                document.getElementById('preco').value = '';
-                document.getElementById('descricao').value = '';
+                mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
+                cancelarEdicao();
+            } else {
+                // Modo adição - adicionar novo produto
+                const novoProduto = {
+                    nome,
+                    categoria,
+                    preco,
+                    descricao,
+                    id: Date.now()
+                };
                 
-                carregarProdutos();
-                carregarFiltrosProdutos();
-                atualizarDashboard();
-            } catch (error) {
-                console.error('Erro ao adicionar produto:', error);
-                mostrarAlerta('produto-error', 'Erro ao salvar produto. Tente novamente.');
+                produtos.push(novoProduto);
+                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
             }
+            
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+            
+            // Limpar formulário
+            document.getElementById('nome-produto').value = '';
+            document.getElementById('categoria').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('descricao').value = '';
+            
+            carregarProdutos();
+            carregarFiltrosProdutos();
+            atualizarDashboard();
         }
 
-        async function editarProduto(id) {
-            try {
-                const result = await callGoogleScript('getProdutos');
-                const produtos = result.data;
-                const produto = produtos.find(p => p.id === id);
-                
-                if (!produto) {
-                    mostrarAlerta('produto-error', 'Produto não encontrado.');
-                    return;
-                }
-                
-                // Preencher formulário com dados do produto
-                document.getElementById('nome-produto').value = produto.nome;
-                document.getElementById('categoria').value = produto.categoria;
-                document.getElementById('preco').value = produto.preco;
-                document.getElementById('descricao').value = produto.descricao || '';
-                
-                // Alterar para modo edição
-                produtoEmEdicao = id;
-                document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
-                document.getElementById('cancelar-edicao').classList.remove('hidden');
-                
-                // Rolar para o formulário
-                document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
-            } catch (error) {
-                console.error('Erro ao editar produto:', error);
-            }
+        function editarProduto(index) {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const produto = produtos[index];
+            
+            // Preencher formulário com dados do produto
+            document.getElementById('nome-produto').value = produto.nome;
+            document.getElementById('categoria').value = produto.categoria;
+            document.getElementById('preco').value = produto.preco;
+            document.getElementById('descricao').value = produto.descricao || '';
+            
+            // Alterar para modo edição
+            produtoEmEdicao = index;
+            document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
+            document.getElementById('cancelar-edicao').classList.remove('hidden');
+            
+            // Rolar para o formulário
+            document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
         }
 
         function cancelarEdicao() {
@@ -1221,60 +1176,51 @@
             document.getElementById('cancelar-edicao').classList.add('hidden');
         }
 
-        async function excluirProduto(id) {
+        function excluirProduto(index) {
             if (confirm('Tem certeza que deseja excluir este produto?')) {
-                try {
-                    await callGoogleScript('excluirProduto', { id });
-                    carregarProdutos();
-                    carregarFiltrosProdutos();
-                    atualizarDashboard();
-                    
-                    // Se estava editando o produto excluído, cancelar a edição
-                    if (produtoEmEdicao === id) {
-                        cancelarEdicao();
-                    }
-                } catch (error) {
-                    console.error('Erro ao excluir produto:', error);
+                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+                produtos.splice(index, 1);
+                localStorage.setItem('produtos', JSON.stringify(produtos));
+                carregarProdutos();
+                carregarFiltrosProdutos();
+                atualizarDashboard();
+                
+                // Se estava editando o produto excluído, cancelar a edição
+                if (produtoEmEdicao === index) {
+                    cancelarEdicao();
                 }
             }
         }
 
         // Funções para gerenciar comandas
-        async function carregarComandas() {
-            try {
-                const result = await callGoogleScript('getComandas');
-                const comandas = result.data;
-                const listaComandas = document.getElementById('comandas-lista');
-                
-                listaComandas.innerHTML = '';
-                
-                if (comandas.length === 0) {
-                    listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
-                    return;
-                }
-                
-                for (const comanda of comandas) {
-                    const itensResult = await callGoogleScript('getItensComanda', { comandaId: comanda.id });
-                    const itens = itensResult.data;
-                    const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
-                    
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `
-                        <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
-                        <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
-                        <p><strong>Itens:</strong> ${itens.length}</p>
-                        <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
-                        <button class="btn btn-primary" onclick="abrirModalComanda('${comanda.id}')">Ver/Editar</button>
-                    `;
-                    listaComandas.appendChild(div);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar comandas:', error);
+        function carregarComandas() {
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const listaComandas = document.getElementById('comandas-lista');
+            
+            listaComandas.innerHTML = '';
+            
+            if (comandas.length === 0) {
+                listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                return;
             }
+            
+            comandas.forEach((comanda, index) => {
+                const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
+                    <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+                    <p><strong>Itens:</strong> ${comanda.itens.length}</p>
+                    <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
+                    <button class="btn btn-primary" onclick="abrirModalComanda(${index})">Ver/Editar</button>
+                `;
+                listaComandas.appendChild(div);
+            });
         }
 
-        async function criarComanda() {
+        function criarComanda() {
             const cliente = document.getElementById('cliente').value;
             
             if (!cliente) {
@@ -1282,31 +1228,38 @@
                 return;
             }
             
-            try {
-                const novaComanda = {
-                    cliente: cliente,
-                    dataAbertura: new Date().toISOString(),
-                    status: 'ativa'
-                };
-                
-                await callGoogleScript('adicionarComanda', novaComanda);
-                
-                // Limpar formulário
-                document.getElementById('cliente').value = '';
-                
-                mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
-                carregarComandas();
-                atualizarDashboard();
-            } catch (error) {
-                console.error('Erro ao criar comanda:', error);
-                mostrarAlerta('comanda-error', 'Erro ao criar comanda. Tente novamente.');
-            }
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const id = gerarIdComanda();
+            
+            comandas.push({
+                id: id,
+                cliente: cliente,
+                itens: [],
+                dataAbertura: new Date().toISOString(),
+                status: 'ativa'
+            });
+            
+            localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Limpar formulário
+            document.getElementById('cliente').value = '';
+            
+            mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
+            carregarComandas();
+            atualizarDashboard();
         }
 
-        async function abrirModalComanda(id) {
+        function gerarIdComanda() {
+            let ultimoId = parseInt(localStorage.getItem('ultimoIdComanda')) || 0;
+            ultimoId++;
+            localStorage.setItem('ultimoIdComanda', ultimoId.toString());
+            return ultimoId;
+        }
+
+        function abrirModalComanda(index) {
             const modal = document.getElementById('modal-comanda');
             modal.style.display = 'flex';
-            comandaAtual = id;
+            comandaAtual = index;
             
             // Resetar seleção
             produtoSelecionado = null;
@@ -1319,12 +1272,12 @@
             carregarProdutosModal();
             
             // Atualizar itens da comanda
-            atualizarItensComandaModal(id);
+            atualizarItensComandaModal(index);
             
             // Configurar eventos
-            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(id);
-            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(id);
-            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(id);
+            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(index);
+            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(index);
+            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(index);
             document.getElementById('salvar-fechar-comanda').onclick = () => {
                 modal.style.display = 'none';
                 carregarComandas();
@@ -1374,169 +1327,152 @@
             carregarProdutosModal();
         }
 
-        async function carregarProdutosModal() {
-            try {
-                const result = await callGoogleScript('getProdutos');
-                const produtos = result.data;
-                const container = document.getElementById('product-grid');
-                container.innerHTML = '';
-                
-                // Filtrar produtos por categoria
-                let produtosFiltrados = produtos;
-                if (categoriaAtual) {
-                    produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
+        function carregarProdutosModal() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const container = document.getElementById('product-grid');
+            container.innerHTML = '';
+            
+            // Filtrar produtos por categoria
+            let produtosFiltrados = produtos;
+            if (categoriaAtual) {
+                produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
+            }
+            
+            if (produtosFiltrados.length === 0) {
+                container.innerHTML = '<p>Nenhum produto encontrado</p>';
+                return;
+            }
+            
+            produtosFiltrados.forEach(produto => {
+                const div = document.createElement('div');
+                div.className = 'product-item';
+                if (produtoSelecionado && produtoSelecionado.id === produto.id) {
+                    div.classList.add('selected');
                 }
                 
-                if (produtosFiltrados.length === 0) {
-                    container.innerHTML = '<p>Nenhum produto encontrado</p>';
-                    return;
-                }
+                div.innerHTML = `
+                    <div class="product-name">${produto.nome}</div>
+                    <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
+                    <small>${produto.categoria}</small>
+                `;
                 
-                produtosFiltrados.forEach(produto => {
-                    const div = document.createElement('div');
-                    div.className = 'product-item';
-                    if (produtoSelecionado && produtoSelecionado.id === produto.id) {
-                        div.classList.add('selected');
+                div.onclick = () => {
+                    // Desselecionar produto anterior
+                    document.querySelectorAll('.product-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    
+                    // Selecionar produto atual
+                    div.classList.add('selected');
+                    produtoSelecionado = produto;
+                };
+                
+                container.appendChild(div);
+            });
+        }
+
+        function abrirModalPagamento(index) {
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const comanda = comandas[index];
+            
+            if (comanda.itens.length === 0) {
+                alert('Não é possível fechar uma comanda sem itens.');
+                return;
+            }
+            
+            // Fechar modal da comanda
+            document.getElementById('modal-comanda').style.display = 'none';
+            
+            // Abrir modal de pagamento
+            const modalPagamento = document.getElementById('modal-pagamento');
+            modalPagamento.style.display = 'flex';
+            
+            // Resetar seleção de pagamento
+            formaPagamento = null;
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Esconder código PIX inicialmente
+            document.getElementById('pix-code-container').classList.add('hidden');
+            
+            // Configurar eventos de seleção de pagamento
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    formaPagamento = this.getAttribute('data-payment');
+                    
+                    // Mostrar código PIX se selecionado
+                    if (formaPagamento === 'pix') {
+                        document.getElementById('pix-code-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('pix-code-container').classList.add('hidden');
                     }
-                    
-                    div.innerHTML = `
-                        <div class="product-name">${produto.nome}</div>
-                        <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
-                        <small>${produto.categoria}</small>
-                    `;
-                    
-                    div.onclick = () => {
-                        // Desselecionar produto anterior
-                        document.querySelectorAll('.product-item').forEach(item => {
-                            item.classList.remove('selected');
-                        });
-                        
-                        // Selecionar produto atual
-                        div.classList.add('selected');
-                        produtoSelecionado = produto;
-                    };
-                    
-                    container.appendChild(div);
                 });
-            } catch (error) {
-                console.error('Erro ao carregar produtos no modal:', error);
-            }
+            });
+            
+            // Configurar evento para copiar código PIX
+            document.getElementById('copiar-pix').onclick = function() {
+                const pixCode = document.getElementById('pix-code-text').textContent;
+                navigator.clipboard.writeText(pixCode).then(function() {
+                    alert('Código PIX copiado para a área de transferência!');
+                });
+            };
+            
+            // Configurar eventos dos botões
+            document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
+            document.getElementById('cancelar-pagamento').onclick = () => {
+                modalPagamento.style.display = 'none';
+                document.getElementById('modal-comanda').style.display = 'flex';
+            };
+            
+            // Fechar modal
+            document.querySelector('#modal-pagamento .close-btn').onclick = () => {
+                modalPagamento.style.display = 'none';
+                document.getElementById('modal-comanda').style.display = 'flex';
+            };
         }
 
-        async function abrirModalPagamento(id) {
-            try {
-                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
-                const itens = itensResult.data;
-                
-                if (itens.length === 0) {
-                    alert('Não é possível fechar uma comanda sem itens.');
-                    return;
-                }
-                
-                // Fechar modal da comanda
-                document.getElementById('modal-comanda').style.display = 'none';
-                
-                // Abrir modal de pagamento
-                const modalPagamento = document.getElementById('modal-pagamento');
-                modalPagamento.style.display = 'flex';
-                
-                // Resetar seleção de pagamento
-                formaPagamento = null;
-                document.querySelectorAll('.payment-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
-                
-                // Esconder código PIX inicialmente
-                document.getElementById('pix-code-container').classList.add('hidden');
-                
-                // Configurar eventos de seleção de pagamento
-                document.querySelectorAll('.payment-option').forEach(option => {
-                    option.addEventListener('click', function() {
-                        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-                        this.classList.add('selected');
-                        formaPagamento = this.getAttribute('data-payment');
-                        
-                        // Mostrar código PIX se selecionado
-                        if (formaPagamento === 'pix') {
-                            document.getElementById('pix-code-container').classList.remove('hidden');
-                        } else {
-                            document.getElementById('pix-code-container').classList.add('hidden');
-                        }
-                    });
-                });
-                
-                // Configurar evento para copiar código PIX
-                document.getElementById('copiar-pix').onclick = function() {
-                    const pixCode = document.getElementById('pix-code-text').textContent;
-                    navigator.clipboard.writeText(pixCode).then(function() {
-                        alert('Código PIX copiado para a área de transferência!');
-                    });
-                };
-                
-                // Configurar eventos dos botões
-                document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(id);
-                document.getElementById('cancelar-pagamento').onclick = () => {
-                    modalPagamento.style.display = 'none';
-                    document.getElementById('modal-comanda').style.display = 'flex';
-                };
-                
-                // Fechar modal
-                document.querySelector('#modal-pagamento .close-btn').onclick = () => {
-                    modalPagamento.style.display = 'none';
-                    document.getElementById('modal-comanda').style.display = 'flex';
-                };
-            } catch (error) {
-                console.error('Erro ao abrir modal de pagamento:', error);
+        function atualizarItensComandaModal(index) {
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const comanda = comandas[index];
+            const container = document.getElementById('itens-comanda-modal');
+            const totalElement = document.getElementById('total-comanda-modal');
+            
+            container.innerHTML = '';
+            
+            if (comanda.itens.length === 0) {
+                container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
+                totalElement.textContent = 'Total: R$ 0,00';
+                return;
             }
+            
+            let total = 0;
+            
+            comanda.itens.forEach((item, itemIndex) => {
+                const itemTotal = item.preco * item.quantidade;
+                total += itemTotal;
+                
+                const div = document.createElement('div');
+                div.className = 'comanda-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.nome}</strong><br>
+                        <small>R$ ${item.preco.toFixed(2)} x ${item.quantidade}</small>
+                    </div>
+                    <div>
+                        <span>R$ ${itemTotal.toFixed(2)}</span>
+                        <button class="btn btn-danger" onclick="removerItemComanda(${index}, ${itemIndex})">Remover</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
         }
 
-        async function atualizarItensComandaModal(id) {
-            try {
-                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
-                const itens = itensResult.data;
-                const container = document.getElementById('itens-comanda-modal');
-                const totalElement = document.getElementById('total-comanda-modal');
-                
-                container.innerHTML = '';
-                
-                if (itens.length === 0) {
-                    container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
-                    totalElement.textContent = 'Total: R$ 0,00';
-                    return;
-                }
-                
-                let total = 0;
-                
-                for (const item of itens) {
-                    const produtosResult = await callGoogleScript('getProdutos');
-                    const produtos = produtosResult.data;
-                    const produto = produtos.find(p => p.id === item.produtoId);
-                    
-                    const itemTotal = item.precoUnitario * item.quantidade;
-                    total += itemTotal;
-                    
-                    const div = document.createElement('div');
-                    div.className = 'comanda-item';
-                    div.innerHTML = `
-                        <div>
-                            <strong>${produto.nome}</strong><br>
-                            <small>R$ ${item.precoUnitario.toFixed(2)} x ${item.quantidade}</small>
-                        </div>
-                        <div>
-                            <span>R$ ${itemTotal.toFixed(2)}</span>
-                            <button class="btn btn-danger" onclick="removerItemComanda('${id}', '${item.id}')">Remover</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                }
-                
-                totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
-            } catch (error) {
-                console.error('Erro ao atualizar itens da comanda:', error);
-            }
-        }
-
-        async function adicionarItemComanda(id) {
+        function adicionarItemComanda(index) {
             const quantidade = parseInt(document.getElementById('quantidade').value);
             
             if (!produtoSelecionado) {
@@ -1549,188 +1485,232 @@
                 return;
             }
             
-            try {
-                const novoItem = {
-                    comandaId: id,
-                    produtoId: produtoSelecionado.id,
-                    quantidade: quantidade,
-                    precoUnitario: produtoSelecionado.preco
-                };
-                
-                await callGoogleScript('adicionarItemComanda', novoItem);
-                atualizarItensComandaModal(id);
-                
-                // Resetar seleção
-                produtoSelecionado = null;
-                document.querySelectorAll('.product-item').forEach(item => {
-                    item.classList.remove('selected');
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const comanda = comandas[index];
+            
+            // Verificar se o item já existe na comanda
+            const itemExistente = comanda.itens.find(item => item.id === produtoSelecionado.id);
+            
+            if (itemExistente) {
+                itemExistente.quantidade += quantidade;
+            } else {
+                comanda.itens.push({
+                    id: produtoSelecionado.id,
+                    nome: produtoSelecionado.nome,
+                    preco: produtoSelecionado.preco,
+                    quantidade: quantidade
                 });
-            } catch (error) {
-                console.error('Erro ao adicionar item à comanda:', error);
             }
+            
+            localStorage.setItem('comandas', JSON.stringify(comandas));
+            atualizarItensComandaModal(index);
+            
+            // Resetar seleção
+            produtoSelecionado = null;
+            document.querySelectorAll('.product-item').forEach(item => {
+                item.classList.remove('selected');
+            });
         }
 
-        async function removerItemComanda(comandaId, itemId) {
-            try {
-                // Para remover um item específico, precisamos excluir todos os itens e readicionar os que queremos manter
-                const itensResult = await callGoogleScript('getItensComanda', { comandaId: comandaId });
-                const itens = itensResult.data;
-                const itensFiltrados = itens.filter(item => item.id !== itemId);
-                
-                // Excluir todos os itens da comanda
-                await callGoogleScript('excluirItensComanda', { comandaId: comandaId });
-                
-                // Adicionar os itens filtrados de volta
-                for (const item of itensFiltrados) {
-                    await callGoogleScript('adicionarItemComanda', item);
-                }
-                
-                atualizarItensComandaModal(comandaId);
-            } catch (error) {
-                console.error('Erro ao remover item da comanda:', error);
-            }
+        function removerItemComanda(comandaIndex, itemIndex) {
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            comandas[comandaIndex].itens.splice(itemIndex, 1);
+            localStorage.setItem('comandas', JSON.stringify(comandas));
+            atualizarItensComandaModal(comandaIndex);
         }
 
-        async function fecharComanda(id) {
+        function fecharComanda(index) {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
                 return;
             }
             
-            try {
-                const comandasResult = await callGoogleScript('getComandas');
-                const comandas = comandasResult.data;
-                const comanda = comandas.find(c => c.id === id);
-                const itensResult = await callGoogleScript('getItensComanda', { comandaId: id });
-                const itens = itensResult.data;
-                
-                const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
-                
-                // Registrar venda
-                const venda = {
-                    comandaId: id,
-                    cliente: comanda.cliente,
-                    total: total,
-                    formaPagamento: formaPagamento,
-                    data: new Date().toISOString()
-                };
-                
-                await callGoogleScript('adicionarVenda', venda);
-                
-                // Atualizar status da comanda
-                comanda.status = 'fechada';
-                await callGoogleScript('atualizarComanda', comanda);
-                
-                // Fechar modal
-                document.getElementById('modal-pagamento').style.display = 'none';
-                
-                alert(`Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)} - Forma de pagamento: ${formaPagamento}`);
-                carregarComandas();
-                atualizarDashboard();
-            } catch (error) {
-                console.error('Erro ao fechar comanda:', error);
-            }
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const comanda = comandas[index];
+            
+            const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+            
+            // Registrar venda
+            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            vendas.push({
+                comandaId: comanda.id,
+                cliente: comanda.cliente,
+                itens: [...comanda.itens],
+                total: total,
+                formaPagamento: formaPagamento,
+                data: new Date().toISOString()
+            });
+            
+            localStorage.setItem('vendas', JSON.stringify(vendas));
+            
+            // Remover comanda
+            comandas.splice(index, 1);
+            localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Fechar modal
+            document.getElementById('modal-pagamento').style.display = 'none';
+            
+            alert(`Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)} - Forma de pagamento: ${formaPagamento}`);
+            carregarComandas();
+            atualizarDashboard();
         }
 
-        async function cancelarComanda(id) {
+        function cancelarComanda(index) {
             if (confirm('Tem certeza que deseja cancelar esta comanda?')) {
-                try {
-                    const comandasResult = await callGoogleScript('getComandas');
-                    const comandas = comandasResult.data;
-                    const comanda = comandas.find(c => c.id === id);
-                    
-                    // Atualizar status da comanda
-                    comanda.status = 'cancelada';
-                    await callGoogleScript('atualizarComanda', comanda);
-                    
-                    // Fechar modal
-                    document.getElementById('modal-comanda').style.display = 'none';
-                    
-                    carregarComandas();
-                    atualizarDashboard();
-                } catch (error) {
-                    console.error('Erro ao cancelar comanda:', error);
-                }
+                const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+                comandas.splice(index, 1);
+                localStorage.setItem('comandas', JSON.stringify(comandas));
+                
+                // Fechar modal
+                document.getElementById('modal-comanda').style.display = 'none';
+                
+                carregarComandas();
+                atualizarDashboard();
             }
         }
 
         // Funções para relatórios
-        async function carregarRelatorios() {
+        function carregarRelatorios() {
             const dataInicio = document.getElementById('data-inicio').value;
             const dataFim = document.getElementById('data-fim').value;
             
-            try {
-                const vendasResult = await callGoogleScript('getVendas');
-                let vendas = vendasResult.data;
-                
-                // Filtrar por data se especificado
-                if (dataInicio) {
-                    vendas = vendas.filter(venda => venda.data >= dataInicio);
-                }
-                
-                if (dataFim) {
-                    // Adicionar um dia para incluir vendas do dia final
-                    const fim = new Date(dataFim);
-                    fim.setDate(fim.getDate() + 1);
-                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
-                }
-                
-                const tabela = document.getElementById('relatorio-vendas');
-                tabela.innerHTML = '';
-                
-                if (vendas.length === 0) {
-                    tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
-                    return;
-                }
-                
-                vendas.forEach((venda, index) => {
-                    const data = new Date(venda.data);
-                    const dataFormatada = data.toLocaleDateString('pt-BR');
-                    
-                    // Formatar forma de pagamento
-                    let pagamentoFormatado = '';
-                    switch(venda.formaPagamento) {
-                        case 'dinheiro':
-                            pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
-                            break;
-                        case 'pix':
-                            pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
-                            break;
-                        case 'debito':
-                            pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
-                            break;
-                        case 'credito':
-                            pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
-                            break;
-                        default:
-                            pagamentoFormatado = '<span class="badge">N/A</span>';
-                    }
-                    
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${dataFormatada}</td>
-                        <td>#${venda.comandaId}</td>
-                        <td>${venda.cliente || 'Cliente não informado'}</td>
-                        <td>R$ ${venda.total.toFixed(2)}</td>
-                        <td>${pagamentoFormatado}</td>
-                        <td>
-                            <button class="btn btn-primary" onclick="verDetalhesVenda('${venda.id}')">Ver Detalhes</button>
-                        </td>
-                    `;
-                    tabela.appendChild(tr);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar relatórios:', error);
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            
+            // Filtrar por data se especificado
+            if (dataInicio) {
+                vendas = vendas.filter(venda => venda.data >= dataInicio);
             }
+            
+            if (dataFim) {
+                // Adicionar um dia para incluir vendas do dia final
+                const fim = new Date(dataFim);
+                fim.setDate(fim.getDate() + 1);
+                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+            }
+            
+            const tabela = document.getElementById('relatorio-vendas');
+            tabela.innerHTML = '';
+            
+            if (vendas.length === 0) {
+                tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
+                return;
+            }
+            
+            vendas.forEach((venda, index) => {
+                const data = new Date(venda.data);
+                const dataFormatada = data.toLocaleDateString('pt-BR');
+                
+                // Formatar forma de pagamento
+                let pagamentoFormatado = '';
+                switch(venda.formaPagamento) {
+                    case 'dinheiro':
+                        pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
+                        break;
+                    case 'pix':
+                        pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
+                        break;
+                    case 'debito':
+                        pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
+                        break;
+                    case 'credito':
+                        pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
+                        break;
+                    default:
+                        pagamentoFormatado = '<span class="badge">N/A</span>';
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>#${venda.comandaId}</td>
+                    <td>${venda.cliente || 'Cliente não informado'}</td>
+                    <td>R$ ${venda.total.toFixed(2)}</td>
+                    <td>${pagamentoFormatado}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="verDetalhesVenda(${index})">Ver Detalhes</button>
+                    </td>
+                `;
+                tabela.appendChild(tr);
+            });
         }
 
-        async function verDetalhesVenda(id) {
-            try {
-                const vendasResult = await callGoogleScript('getVendas');
-                const vendas = vendasResult.data;
-                const venda = vendas.find(v => v.id === id);
-                const itensResult = await callGoogleScript('getItensComanda', { comandaId: venda.comandaId });
-                const itens = itensResult.data;
+        function verDetalhesVenda(index) {
+            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            const venda = vendas[index];
+            
+            // Formatar forma de pagamento
+            let pagamentoTexto = '';
+            switch(venda.formaPagamento) {
+                case 'dinheiro':
+                    pagamentoTexto = 'Dinheiro';
+                    break;
+                case 'pix':
+                    pagamentoTexto = 'PIX';
+                    break;
+                case 'debito':
+                    pagamentoTexto = 'Cartão de Débito';
+                    break;
+                case 'credito':
+                    pagamentoTexto = 'Cartão de Crédito';
+                    break;
+                default:
+                    pagamentoTexto = 'Não informado';
+            }
+            
+            const modal = document.getElementById('modal-venda');
+            const container = document.getElementById('detalhes-venda');
+            
+            container.innerHTML = `
+                <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+                <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
+                <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
+                <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                <h4>Itens:</h4>
+                <ul>
+                    ${venda.itens.map(item => `
+                        <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
+                    `).join('')}
+                </ul>
+                <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            // Fechar modal
+            document.querySelector('#modal-venda .close-btn').onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+
+        function exportarRelatorio() {
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            
+            const dataInicio = document.getElementById('data-inicio').value;
+            const dataFim = document.getElementById('data-fim').value;
+            
+            // Filtrar por data se especificado
+            if (dataInicio) {
+                vendas = vendas.filter(venda => venda.data >= dataInicio);
+            }
+            
+            if (dataFim) {
+                // Adicionar um dia para incluir vendas do dia final
+                const fim = new Date(dataFim);
+                fim.setDate(fim.getDate() + 1);
+                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+            }
+            
+            if (vendas.length === 0) {
+                alert('Nenhuma venda para exportar.');
+                return;
+            }
+            
+            // Criar CSV
+            let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
+            
+            vendas.forEach(venda => {
+                const data = new Date(venda.data);
+                const dataFormatada = data.toLocaleDateString('pt-BR');
                 
                 // Formatar forma de pagamento
                 let pagamentoTexto = '';
@@ -1751,106 +1731,19 @@
                         pagamentoTexto = 'Não informado';
                 }
                 
-                const modal = document.getElementById('modal-venda');
-                const container = document.getElementById('detalhes-venda');
-                
-                let itensHTML = '';
-                for (const item of itens) {
-                    const produtosResult = await callGoogleScript('getProdutos');
-                    const produtos = produtosResult.data;
-                    const produto = produtos.find(p => p.id === item.produtoId);
-                    
-                    itensHTML += `<li>${item.quantidade}x ${produto.nome} - R$ ${item.precoUnitario.toFixed(2)} = R$ ${(item.precoUnitario * item.quantidade).toFixed(2)}</li>`;
-                }
-                
-                container.innerHTML = `
-                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                    <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
-                    <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
-                    <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
-                    <h4>Itens:</h4>
-                    <ul>${itensHTML}</ul>
-                    <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
-                `;
-                
-                modal.style.display = 'flex';
-                
-                // Fechar modal
-                document.querySelector('#modal-venda .close-btn').onclick = () => {
-                    modal.style.display = 'none';
-                };
-            } catch (error) {
-                console.error('Erro ao ver detalhes da venda:', error);
-            }
-        }
-
-        async function exportarRelatorio() {
-            try {
-                const vendasResult = await callGoogleScript('getVendas');
-                let vendas = vendasResult.data;
-                
-                const dataInicio = document.getElementById('data-inicio').value;
-                const dataFim = document.getElementById('data-fim').value;
-                
-                // Filtrar por data se especificado
-                if (dataInicio) {
-                    vendas = vendas.filter(venda => venda.data >= dataInicio);
-                }
-                
-                if (dataFim) {
-                    // Adicionar um dia para incluir vendas do dia final
-                    const fim = new Date(dataFim);
-                    fim.setDate(fim.getDate() + 1);
-                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
-                }
-                
-                if (vendas.length === 0) {
-                    alert('Nenhuma venda para exportar.');
-                    return;
-                }
-                
-                // Criar CSV
-                let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
-                
-                vendas.forEach(venda => {
-                    const data = new Date(venda.data);
-                    const dataFormatada = data.toLocaleDateString('pt-BR');
-                    
-                    // Formatar forma de pagamento
-                    let pagamentoTexto = '';
-                    switch(venda.formaPagamento) {
-                        case 'dinheiro':
-                            pagamentoTexto = 'Dinheiro';
-                            break;
-                        case 'pix':
-                            pagamentoTexto = 'PIX';
-                            break;
-                        case 'debito':
-                            pagamentoTexto = 'Cartão de Débito';
-                            break;
-                        case 'credito':
-                            pagamentoTexto = 'Cartão de Crédito';
-                            break;
-                        default:
-                            pagamentoTexto = 'Não informado';
-                    }
-                    
-                    csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
-                });
-                
-                // Criar e baixar arquivo
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.setAttribute('href', url);
-                link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (error) {
-                console.error('Erro ao exportar relatório:', error);
-            }
+                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
+            });
+            
+            // Criar e baixar arquivo
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Funções para dashboard
@@ -1865,127 +1758,117 @@
             atualizarDashboard();
         }
 
-        async function atualizarDashboard() {
-            try {
-                // Estatísticas gerais
-                const produtosResult = await callGoogleScript('getProdutos');
-                const produtos = produtosResult.data;
-                const comandasResult = await callGoogleScript('getComandas');
-                const comandas = comandasResult.data;
-                const vendasResult = await callGoogleScript('getVendas');
-                let vendas = vendasResult.data;
-                
-                // Aplicar filtros nas vendas
-                if (filtrosDashboard.dataInicio) {
-                    vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
-                }
-                
-                if (filtrosDashboard.dataFim) {
-                    const fim = new Date(filtrosDashboard.dataFim);
-                    fim.setDate(fim.getDate() + 1);
-                    vendas = vendas.filter(venda => venda.data < fim.toISOString());
-                }
-                
-                if (filtrosDashboard.categoria) {
-                    // Filtrar vendas por categoria (implementação simplificada)
-                    // Em uma implementação real, você precisaria verificar os itens de cada venda
-                }
-                
-                if (filtrosDashboard.produto) {
-                    // Filtrar vendas por produto (implementação simplificada)
-                    // Em uma implementação real, você precisaria verificar os itens de cada venda
-                }
-                
-                // Total em vendas
-                const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
-                document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
-                
-                // Comandas ativas
-                const comandasAtivas = comandas.filter(comanda => comanda.status === 'ativa');
-                document.getElementById('total-comandas').textContent = comandasAtivas.length;
-                
-                // Produtos cadastrados
-                document.getElementById('total-produtos').textContent = produtos.length;
-                
-                // Vendas hoje
-                const hoje = new Date().toISOString().split('T')[0];
-                const vendasHoje = vendas.filter(venda => venda.data.startsWith(hoje)).length;
-                document.getElementById('vendas-hoje').textContent = vendasHoje;
-                
-                // Comandas ativas no dashboard
-                const comandasDashboard = document.getElementById('comandas-lista-dashboard');
-                comandasDashboard.innerHTML = '';
-                
-                if (comandasAtivas.length === 0) {
-                    comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
-                } else {
-                    for (const comanda of comandasAtivas) {
-                        const itensResult = await callGoogleScript('getItensComanda', { comandaId: comanda.id });
-                        const itens = itensResult.data;
-                        const total = itens.reduce((sum, item) => sum + (item.precoUnitario * item.quantidade), 0);
-                        
-                        const div = document.createElement('div');
-                        div.className = 'comanda-item';
-                        div.innerHTML = `
-                            <div>
-                                <strong>Comanda #${comanda.id}</strong><br>
-                                <small>${comanda.cliente || 'Cliente não informado'}</small>
-                            </div>
-                            <div>R$ ${total.toFixed(2)}</div>
-                        `;
-                        comandasDashboard.appendChild(div);
-                    }
-                }
-                
-                // Produtos mais vendidos
-                const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
-                produtosMaisVendidos.innerHTML = '';
-                
-                if (vendas.length === 0) {
-                    produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
-                    return;
-                }
-                
-                // Agrupar produtos vendidos
-                const produtosVendidos = {};
-                
-                for (const venda of vendas) {
-                    const itensResult = await callGoogleScript('getItensComanda', { comandaId: venda.comandaId });
-                    const itens = itensResult.data;
-                    
-                    for (const item of itens) {
-                        const produto = produtos.find(p => p.id === item.produtoId);
-                        
-                        if (!produtosVendidos[item.produtoId]) {
-                            produtosVendidos[item.produtoId] = {
-                                nome: produto.nome,
-                                quantidade: 0,
-                                total: 0
-                            };
-                        }
-                        
-                        produtosVendidos[item.produtoId].quantidade += item.quantidade;
-                        produtosVendidos[item.produtoId].total += item.precoUnitario * item.quantidade;
-                    }
-                }
-                
-                // Ordenar por quantidade (mais vendidos primeiro)
-                const produtosOrdenados = Object.values(produtosVendidos)
-                    .sort((a, b) => b.quantidade - a.quantidade)
-                    .slice(0, 5); // Top 5
-                
-                produtosOrdenados.forEach(produto => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${produto.nome}</td>
-                        <td>${produto.quantidade}</td>
-                        <td>R$ ${produto.total.toFixed(2)}</td>
-                    `;
-                    produtosMaisVendidos.appendChild(tr);
-                });
-            } catch (error) {
-                console.error('Erro ao atualizar dashboard:', error);
+        function atualizarDashboard() {
+            // Estatísticas gerais
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            
+            // Aplicar filtros nas vendas
+            if (filtrosDashboard.dataInicio) {
+                vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
             }
+            
+            if (filtrosDashboard.dataFim) {
+                const fim = new Date(filtrosDashboard.dataFim);
+                fim.setDate(fim.getDate() + 1);
+                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+            }
+            
+            if (filtrosDashboard.categoria) {
+                vendas = vendas.filter(venda => 
+                    venda.itens.some(item => {
+                        const produto = produtos.find(p => p.id === item.id);
+                        return produto && produto.categoria === filtrosDashboard.categoria;
+                    })
+                );
+            }
+            
+            if (filtrosDashboard.produto) {
+                vendas = vendas.filter(venda => 
+                    venda.itens.some(item => item.id.toString() === filtrosDashboard.produto)
+                );
+            }
+            
+            // Total em vendas
+            const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
+            document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
+            
+            // Comandas ativas
+            document.getElementById('total-comandas').textContent = comandas.length;
+            
+            // Produtos cadastrados
+            document.getElementById('total-produtos').textContent = produtos.length;
+            
+            // Vendas hoje
+            const hoje = new Date().toISOString().split('T')[0];
+            const vendasHoje = vendas.filter(venda => venda.data.startsWith(hoje)).length;
+            document.getElementById('vendas-hoje').textContent = vendasHoje;
+            
+            // Comandas ativas no dashboard
+            const comandasDashboard = document.getElementById('comandas-lista-dashboard');
+            comandasDashboard.innerHTML = '';
+            
+            if (comandas.length === 0) {
+                comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
+            } else {
+                comandas.forEach(comanda => {
+                    const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'comanda-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>Comanda #${comanda.id}</strong><br>
+                            <small>${comanda.cliente || 'Cliente não informado'}</small>
+                        </div>
+                        <div>R$ ${total.toFixed(2)}</div>
+                    `;
+                    comandasDashboard.appendChild(div);
+                });
+            }
+            
+            // Produtos mais vendidos
+            const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
+            produtosMaisVendidos.innerHTML = '';
+            
+            if (vendas.length === 0) {
+                produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
+                return;
+            }
+            
+            // Agrupar produtos vendidos
+            const produtosVendidos = {};
+            
+            vendas.forEach(venda => {
+                venda.itens.forEach(item => {
+                    if (!produtosVendidos[item.id]) {
+                        produtosVendidos[item.id] = {
+                            nome: item.nome,
+                            quantidade: 0,
+                            total: 0
+                        };
+                    }
+                    
+                    produtosVendidos[item.id].quantidade += item.quantidade;
+                    produtosVendidos[item.id].total += item.preco * item.quantidade;
+                });
+            });
+            
+            // Ordenar por quantidade (mais vendidos primeiro)
+            const produtosOrdenados = Object.values(produtosVendidos)
+                .sort((a, b) => b.quantidade - a.quantidade)
+                .slice(0, 5); // Top 5
+            
+            produtosOrdenados.forEach(produto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${produto.nome}</td>
+                    <td>${produto.quantidade}</td>
+                    <td>R$ ${produto.total.toFixed(2)}</td>
+                `;
+                produtosMaisVendidos.appendChild(tr);
+            });
         }
 
         // Funções auxiliares
