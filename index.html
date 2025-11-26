@@ -238,6 +238,39 @@
             gap: 15px;
         }
 
+        .category-filter {
+            margin-bottom: 20px;
+        }
+
+        .category-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 14px;
+            background: #0f0f0f;
+            border: 1px solid #333333;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #cccccc;
+            transition: all 0.2s ease;
+        }
+
+        .category-btn:hover {
+            border-color: #666666;
+            color: #ffffff;
+        }
+
+        .category-btn.active {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
         .btn {
             padding: 10px 16px;
             background: #ffffff;
@@ -274,13 +307,13 @@
             background: #ff5555;
         }
 
-        .btn-pix {
-            background: #0066cc;
+        .btn-export {
+            background: #22aa22;
             color: #ffffff;
         }
 
-        .btn-pix:hover {
-            background: #0055bb;
+        .btn-export:hover {
+            background: #2ab82a;
         }
 
         .btn-small {
@@ -475,6 +508,13 @@
             color: #ffffff;
         }
 
+        .filter-section {
+            background: #0f0f0f;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
         @media (max-width: 768px) {
             .app {
                 flex-direction: column;
@@ -559,6 +599,75 @@
 
                     <div class="card">
                         <div class="card-header">
+                            <div class="card-header-top">
+                                <div class="card-title">🔥 Produtos Mais Vendidos</div>
+                                <button class="btn btn-export btn-small" onclick="exportToExcel()">📥 Exportar Excel</button>
+                            </div>
+                            <div class="filter-section">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Período</label>
+                                        <select id="dashPeriodFilter" onchange="updateDashboardProducts()">
+                                            <option value="today">Hoje</option>
+                                            <option value="7days">Últimos 7 Dias</option>
+                                            <option value="30days">Últimos 30 Dias</option>
+                                            <option value="all">Todos</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Categoria</label>
+                                        <select id="dashCategoryFilter" onchange="updateDashboardProducts()">
+                                            <option value="">Todas</option>
+                                            <option value="ESPETO">ESPETO</option>
+                                            <option value="BEBIDA">BEBIDA</option>
+                                            <option value="ITENS PARA CHURRASCO">ITENS PARA CHURRASCO</option>
+                                            <option value="FACAS">FACAS</option>
+                                            <option value="COPOS">COPOS</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Método de Pagamento</label>
+                                        <select id="dashPaymentFilter" onchange="updateDashboardProducts()">
+                                            <option value="">Todos</option>
+                                            <option value="pix">PIX</option>
+                                            <option value="dinheiro">Dinheiro</option>
+                                            <option value="debito">Débito</option>
+                                            <option value="credito">Crédito</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Rank</th>
+                                            <th>Produto</th>
+                                            <th>Categoria</th>
+                                            <th class="text-right">Quantidade</th>
+                                            <th class="text-right">Valor Arrecadado</th>
+                                            <th>Data de Venda</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dashProductsTable">
+                                        <tr>
+                                            <td colspan="6">
+                                                <div class="empty-message">
+                                                    <div class="empty-icon">📦</div>
+                                                    <p>Nenhuma venda registrada</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
                             <div class="card-title">💳 Resumo de Pagamentos</div>
                         </div>
                         <div class="card-content">
@@ -603,13 +712,36 @@
                                     <input type="text" id="productName" placeholder="Nome do Produto" maxlength="100">
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" id="productCategory" placeholder="Categoria" maxlength="50">
+                                    <select id="productCategory">
+                                        <option value="">Selecione Categoria</option>
+                                        <option value="ESPETO">ESPETO</option>
+                                        <option value="BEBIDA">BEBIDA</option>
+                                        <option value="ITENS PARA CHURRASCO">ITENS PARA CHURRASCO</option>
+                                        <option value="FACAS">FACAS</option>
+                                        <option value="COPOS">COPOS</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <input type="number" id="productPrice" placeholder="Valor (R$)" step="0.01" min="0">
                                 </div>
                                 <div class="form-group">
                                     <button class="btn" onclick="addProduct()">+ Adicionar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Filtrar por Categoria</div>
+                            <div class="category-filter" style="margin-top: 10px;">
+                                <div class="category-buttons">
+                                    <button class="category-btn active" onclick="filterProductsByCategory('', this)">Todas</button>
+                                    <button class="category-btn" onclick="filterProductsByCategory('ESPETO', this)">🍖 ESPETO</button>
+                                    <button class="category-btn" onclick="filterProductsByCategory('BEBIDA', this)">🥤 BEBIDA</button>
+                                    <button class="category-btn" onclick="filterProductsByCategory('ITENS PARA CHURRASCO', this)">🔥 ITENS PARA CHURRASCO</button>
+                                    <button class="category-btn" onclick="filterProductsByCategory('FACAS', this)">🔪 FACAS</button>
+                                    <button class="category-btn" onclick="filterProductsByCategory('COPOS', this)">🥃 COPOS</button>
                                 </div>
                             </div>
                         </div>
@@ -626,7 +758,7 @@
                                         <tr>
                                             <th>Produto</th>
                                             <th>Categoria</th>
-                                            <th class="text-right">Valor</th>
+                                            <th class="text-right">Valor Atual</th>
                                             <th class="text-center">Ações</th>
                                         </tr>
                                     </thead>
@@ -682,6 +814,22 @@
                         <h1>💰 Histórico de Vendas</h1>
                         <p class="page-subtitle">Todas as comandas fechadas</p>
                     </header>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Filtrar por Categoria</div>
+                            <div class="category-filter" style="margin-top: 10px;">
+                                <div class="category-buttons">
+                                    <button class="category-btn active" onclick="filterSalesByCategory('', this)">Todas</button>
+                                    <button class="category-btn" onclick="filterSalesByCategory('ESPETO', this)">🍖 ESPETO</button>
+                                    <button class="category-btn" onclick="filterSalesByCategory('BEBIDA', this)">🥤 BEBIDA</button>
+                                    <button class="category-btn" onclick="filterSalesByCategory('ITENS PARA CHURRASCO', this)">🔥 ITENS PARA CHURRASCO</button>
+                                    <button class="category-btn" onclick="filterSalesByCategory('FACAS', this)">🔪 FACAS</button>
+                                    <button class="category-btn" onclick="filterSalesByCategory('COPOS', this)">🥃 COPOS</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="card">
                         <div class="card-header">
@@ -742,6 +890,28 @@
         </div>
     </div>
 
+    <!-- Modal para editar preço do produto -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>✏️ Editar Preço do Produto</span>
+                <button class="modal-close" onclick="closeEditProductModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nome do Produto</label>
+                <input type="text" id="editProductName" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Novo Preço (R$)</label>
+                <input type="number" id="editProductPrice" step="0.01" min="0">
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeEditProductModal()" style="margin-right: 10px;">Cancelar</button>
+                <button class="btn" onclick="confirmEditProduct()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para pagamento -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
@@ -775,10 +945,6 @@
                 </div>
             </div>
             <div id="pixContainer" style="display: none;">
-                <div class="qr-code-display">
-                    <div style="margin-bottom: 15px; color: #888;">📱 QR Code PIX</div>
-                    <div id="qrcode"></div>
-                </div>
                 <div class="pix-code" id="pixCode"></div>
             </div>
             <div style="margin-top: 20px; text-align: right;">
@@ -795,6 +961,8 @@
         let currentOrderId = null;
         let currentPaymentMethod = null;
         let nextOrderId = 1;
+        let categoryFilter = '';
+        let salesCategoryFilter = '';
 
         function switchPage(pageId, event) {
             event.preventDefault();
@@ -805,6 +973,7 @@
             if (pageId === 'orders') renderOrders();
             if (pageId === 'menu') renderProductsTable();
             if (pageId === 'sales') renderSalesTable();
+            if (pageId === 'dashboard') updateDashboardProducts();
         }
 
         function addProduct() {
@@ -817,11 +986,13 @@
                 return;
             }
 
+            const now = new Date().toISOString();
             products.push({
                 id: Date.now(),
                 name,
                 category,
-                price: parseFloat(price.toFixed(2))
+                price: parseFloat(price.toFixed(2)),
+                priceHistory: [{ price: parseFloat(price.toFixed(2)), date: now }]
             });
 
             document.getElementById('productName').value = '';
@@ -837,18 +1008,78 @@
             updateDashboard();
         }
 
+        let editingProductId = null;
+
+        function openEditProductModal(id) {
+            editingProductId = id;
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editProductPrice').value = product.price;
+            document.getElementById('editProductModal').classList.add('active');
+        }
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').classList.remove('active');
+            editingProductId = null;
+        }
+
+        function confirmEditProduct() {
+            const product = products.find(p => p.id === editingProductId);
+            if (!product) return;
+
+            const newPrice = parseFloat(document.getElementById('editProductPrice').value);
+            if (isNaN(newPrice) || newPrice < 0) {
+                alert('Digite um valor válido');
+                return;
+            }
+
+            const newPrice2 = parseFloat(newPrice.toFixed(2));
+            if (product.price !== newPrice2) {
+                if (!product.priceHistory) product.priceHistory = [];
+                product.priceHistory.push({
+                    price: newPrice2,
+                    date: new Date().toISOString()
+                });
+                product.price = newPrice2;
+            }
+
+            closeEditProductModal();
+            renderProductsTable();
+            updateDashboard();
+            updateDashboardProducts();
+        }
+
+        function filterProductsByCategory(category, btn) {
+            categoryFilter = category;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderProductsTable();
+        }
+
+        function filterSalesByCategory(category, btn) {
+            salesCategoryFilter = category;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSalesTable();
+        }
+
+
         function renderProductsTable() {
             const tbody = document.getElementById('productsTable');
-            if (products.length === 0) {
+            const filtered = categoryFilter ? products.filter(p => p.category === categoryFilter) : products;
+            
+            if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4"><div class="empty-message"><div class="empty-icon">📦</div><p>Nenhum produto cadastrado</p></div></td></tr>`;
                 return;
             }
-            tbody.innerHTML = products.map(p => `
+            tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td>${p.name}</td>
                     <td>${p.category}</td>
                     <td class="text-right">R$ ${p.price.toFixed(2)}</td>
                     <td class="text-center">
+                        <button class="btn btn-secondary btn-small" style="margin-right: 5px;" onclick="openEditProductModal(${p.id})">✏️ Editar</button>
                         <button class="btn btn-danger btn-small" onclick="deleteProduct(${p.id})">🗑️</button>
                     </td>
                 </tr>
@@ -903,6 +1134,7 @@
                             <table>
                                 <thead>
                                     <tr>
+                                        <th>Categoria</th>
                                         <th>Produto</th>
                                         <th class="text-right">Qtd</th>
                                         <th class="text-right">Valor</th>
@@ -911,8 +1143,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${order.items.length === 0 ? `<tr><td colspan="5"><div class="empty-message"><p>Nenhum item adicionado</p></div></td></tr>` : order.items.map((item, idx) => `
+                                    ${order.items.length === 0 ? `<tr><td colspan="6"><div class="empty-message"><p>Nenhum item adicionado</p></div></td></tr>` : order.items.map((item, idx) => `
                                         <tr>
+                                            <td><strong>${item.category}</strong></td>
                                             <td>${item.productName}</td>
                                             <td class="text-right">${item.quantity}</td>
                                             <td class="text-right">R$ ${item.price.toFixed(2)}</td>
@@ -941,9 +1174,29 @@
             currentOrderId = orderId;
             const select = document.getElementById('modalProduct');
             select.innerHTML = '<option value="">Selecione um produto</option>';
+            
+            // Agrupar produtos por categoria
+            const categories = {};
             products.forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.name} - R$ ${p.price.toFixed(2)}</option>`;
+                if (!categories[p.category]) {
+                    categories[p.category] = [];
+                }
+                categories[p.category].push(p);
             });
+
+            // Criar optgroup para cada categoria
+            Object.keys(categories).sort().forEach(category => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+                categories[category].forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = `${p.name} - R$ ${p.price.toFixed(2)}`;
+                    optgroup.appendChild(option);
+                });
+                select.appendChild(optgroup);
+            });
+            
             document.getElementById('modalQuantity').value = '1';
             document.getElementById('addItemModal').classList.add('active');
         }
@@ -973,6 +1226,7 @@
                 order.items.push({
                     productId,
                     productName: product.name,
+                    category: product.category,
                     price: product.price,
                     quantity
                 });
@@ -1054,7 +1308,8 @@
                 ...order,
                 status: 'closed',
                 paymentMethod: currentPaymentMethod,
-                closedAt: new Date().toLocaleString('pt-BR')
+                closedAt: new Date().toLocaleString('pt-BR'),
+                closedDate: new Date().toISOString()
             };
 
             closedOrders.push(closedOrder);
@@ -1064,11 +1319,23 @@
             renderOrders();
             renderSalesTable();
             updateDashboard();
+            updateDashboardProducts();
         }
 
         function renderSalesTable() {
             const tbody = document.getElementById('salesTable');
-            if (closedOrders.length === 0) {
+            
+            let filtered = closedOrders;
+            if (salesCategoryFilter) {
+                filtered = closedOrders.filter(order => 
+                    order.items.some(item => {
+                        const product = products.find(p => p.id === item.productId);
+                        return product && product.category === salesCategoryFilter;
+                    })
+                );
+            }
+            
+            if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5"><div class="empty-message"><div class="empty-icon">📊</div><p>Nenhuma venda registrada</p></div></td></tr>`;
                 return;
             }
@@ -1087,7 +1354,7 @@
                 credito: 'Crédito'
             };
 
-            tbody.innerHTML = closedOrders.map((order, idx) => `
+            tbody.innerHTML = filtered.map((order, idx) => `
                 <tr>
                     <td>#${order.id}</td>
                     <td>${order.customerName}</td>
@@ -1096,6 +1363,151 @@
                     <td class="text-center">${order.items.length}</td>
                 </tr>
             `).join('');
+        }
+
+        function updateDashboardProducts() {
+            const period = document.getElementById('dashPeriodFilter').value;
+            const category = document.getElementById('dashCategoryFilter').value;
+            const payment = document.getElementById('dashPaymentFilter').value;
+
+            let filtered = closedOrders;
+
+            // Filtro de período
+            if (period !== 'all') {
+                const now = new Date();
+                filtered = filtered.filter(order => {
+                    const orderDate = new Date(order.closedDate);
+                    if (period === 'today') {
+                        return orderDate.toDateString() === now.toDateString();
+                    } else if (period === '7days') {
+                        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        return orderDate >= sevenDaysAgo;
+                    } else if (period === '30days') {
+                        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        return orderDate >= thirtyDaysAgo;
+                    }
+                    return true;
+                });
+            }
+
+            // Filtro de método de pagamento
+            if (payment) {
+                filtered = filtered.filter(o => o.paymentMethod === payment);
+            }
+
+            // Consolidar produtos vendidos
+            const productSales = {};
+            filtered.forEach(order => {
+                order.items.forEach(item => {
+                    const product = products.find(p => p.id === item.productId);
+                    if (product && (!category || product.category === category)) {
+                        if (!productSales[item.productId]) {
+                            productSales[item.productId] = {
+                                productId: item.productId,
+                                productName: item.productName,
+                                category: product.category,
+                                quantity: 0,
+                                revenue: 0,
+                                lastSaleDate: order.closedAt
+                            };
+                        }
+                        productSales[item.productId].quantity += item.quantity;
+                        productSales[item.productId].revenue += item.price * item.quantity;
+                        productSales[item.productId].lastSaleDate = order.closedAt;
+                    }
+                });
+            });
+
+            // Ordenar por quantidade vendida
+            const sorted = Object.values(productSales).sort((a, b) => b.quantity - a.quantity);
+
+            const tbody = document.getElementById('dashProductsTable');
+            if (sorted.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-message"><div class="empty-icon">📦</div><p>Nenhuma venda registrada com estes filtros</p></div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sorted.map((item, idx) => `
+                <tr>
+                    <td class="text-center"><strong>${idx + 1}º</strong></td>
+                    <td>${item.productName}</td>
+                    <td>${item.category}</td>
+                    <td class="text-right">${item.quantity}</td>
+                    <td class="text-right"><strong>R$ ${item.revenue.toFixed(2)}</strong></td>
+                    <td>${item.lastSaleDate}</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportToExcel() {
+            const period = document.getElementById('dashPeriodFilter').value;
+            const category = document.getElementById('dashCategoryFilter').value;
+            const payment = document.getElementById('dashPaymentFilter').value;
+
+            let filtered = closedOrders;
+
+            // Aplicar filtros (mesmo código de updateDashboardProducts)
+            if (period !== 'all') {
+                const now = new Date();
+                filtered = filtered.filter(order => {
+                    const orderDate = new Date(order.closedDate);
+                    if (period === 'today') {
+                        return orderDate.toDateString() === now.toDateString();
+                    } else if (period === '7days') {
+                        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        return orderDate >= sevenDaysAgo;
+                    } else if (period === '30days') {
+                        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        return orderDate >= thirtyDaysAgo;
+                    }
+                    return true;
+                });
+            }
+
+            if (payment) {
+                filtered = filtered.filter(o => o.paymentMethod === payment);
+            }
+
+            const productSales = {};
+            filtered.forEach(order => {
+                order.items.forEach(item => {
+                    const product = products.find(p => p.id === item.productId);
+                    if (product && (!category || product.category === category)) {
+                        if (!productSales[item.productId]) {
+                            productSales[item.productId] = {
+                                productId: item.productId,
+                                productName: item.productName,
+                                category: product.category,
+                                quantity: 0,
+                                revenue: 0,
+                                lastSaleDate: order.closedAt
+                            };
+                        }
+                        productSales[item.productId].quantity += item.quantity;
+                        productSales[item.productId].revenue += item.price * item.quantity;
+                        productSales[item.productId].lastSaleDate = order.closedAt;
+                    }
+                });
+            });
+
+            const sorted = Object.values(productSales).sort((a, b) => b.quantity - a.quantity);
+
+            // Criar CSV
+            let csv = 'RANK,PRODUTO,CATEGORIA,QUANTIDADE,VALOR ARRECADADO,DATA DE VENDA\n';
+            sorted.forEach((item, idx) => {
+                csv += `${idx + 1},"${item.productName}","${item.category}",${item.quantity},"R$ ${item.revenue.toFixed(2)}","${item.lastSaleDate}"\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function updateDashboard() {
