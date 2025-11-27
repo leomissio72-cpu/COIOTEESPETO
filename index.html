@@ -496,6 +496,17 @@
             color: white;
         }
         
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+        
+        .empty-state h3 {
+            color: #777;
+            margin-bottom: 10px;
+        }
+        
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -733,7 +744,12 @@
             
             <div class="card">
                 <h2>Comandas Ativas</h2>
-                <div id="comandas-lista-dashboard"></div>
+                <div id="comandas-lista-dashboard">
+                    <div class="empty-state">
+                        <h3>Nenhuma comanda ativa</h3>
+                        <p>Comece criando sua primeira comanda na aba "Comandas"</p>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
@@ -747,6 +763,9 @@
                         </tr>
                     </thead>
                     <tbody id="produtos-mais-vendidos">
+                        <tr>
+                            <td colspan="3" style="text-align: center;">Nenhuma venda registrada</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -771,7 +790,12 @@
             
             <div class="card">
                 <h2>Comandas Ativas</h2>
-                <div id="comandas-lista"></div>
+                <div id="comandas-lista">
+                    <div class="empty-state">
+                        <h3>Nenhuma comanda ativa</h3>
+                        <p>Crie sua primeira comanda preenchendo o formulário acima</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -834,6 +858,9 @@
                         </tr>
                     </thead>
                     <tbody id="lista-produtos">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -880,6 +907,9 @@
                         </tr>
                     </thead>
                     <tbody id="relatorio-vendas">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -902,7 +932,10 @@
             </div>
             
             <div class="product-grid" id="product-grid">
-                <!-- Produtos serão gerados dinamicamente -->
+                <div class="empty-state">
+                    <h3>Nenhum produto cadastrado</h3>
+                    <p>Cadastre produtos primeiro na aba "Produtos"</p>
+                </div>
             </div>
             
             <div class="form-row">
@@ -917,7 +950,11 @@
             </div>
             
             <h3 style="margin-top: 20px;">Itens na Comanda</h3>
-            <div id="itens-comanda-modal"></div>
+            <div id="itens-comanda-modal">
+                <div class="empty-state">
+                    <p>Nenhum item adicionado à comanda</p>
+                </div>
+            </div>
             
             <div class="comanda-total" id="total-comanda-modal">Total: R$ 0,00</div>
             
@@ -1361,7 +1398,7 @@
             listaComandas.innerHTML = '';
             
             if (comandas.length === 0) {
-                listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                listaComandas.innerHTML = '<div class="empty-state"><h3>Nenhuma comanda ativa</h3><p>Crie sua primeira comanda preenchendo o formulário acima</p></div>';
                 return;
             }
             
@@ -1498,6 +1535,11 @@
             const container = document.getElementById('product-grid');
             container.innerHTML = '';
             
+            if (produtos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>Nenhum produto cadastrado</h3><p>Cadastre produtos primeiro na aba "Produtos"</p></div>';
+                return;
+            }
+            
             // Filtrar produtos por categoria
             let produtosFiltrados = produtos;
             if (categoriaAtual) {
@@ -1600,7 +1642,7 @@
             container.innerHTML = '';
             
             if (comanda.itens.length === 0) {
-                container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
+                container.innerHTML = '<div class="empty-state"><p>Nenhum item adicionado à comanda</p></div>';
                 totalElement.textContent = 'Total: R$ 0,00';
                 return;
             }
@@ -1979,7 +2021,7 @@
             comandasDashboard.innerHTML = '';
             
             if (comandas.length === 0) {
-                comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                comandasDashboard.innerHTML = '<div class="empty-state"><h3>Nenhuma comanda ativa</h3><p>Comece criando sua primeira comanda na aba "Comandas"</p></div>';
             } else {
                 comandas.forEach(comanda => {
                     const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
