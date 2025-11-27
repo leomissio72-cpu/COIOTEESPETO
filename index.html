@@ -473,6 +473,28 @@
             padding: 5px 10px;
             font-size: 12px;
         }
+
+        .sync-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .sync-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .sync-error {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .sync-loading {
+            background-color: var(--warning);
+            color: white;
+        }
         
         @media (max-width: 1024px) {
             .container {
@@ -744,6 +766,7 @@
                 </div>
                 
                 <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
+                <span id="sync-comanda-status" class="sync-status hidden"></span>
             </div>
             
             <div class="card">
@@ -791,6 +814,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                        <span id="sync-produto-status" class="sync-status hidden"></span>
                     </div>
                     <div class="form-group">
                         <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
@@ -932,7 +956,7 @@
                 <h4>Pagamento via PIX - Coiote BBQ</h4>
                 <p>Escaneie o QR Code abaixo para pagar:</p>
                 <div class="qr-code-container">
-                    <img src="./public/qr-code-pix.png" alt="QR Code PIX Coiote BBQ" id="qrcode-image">
+                    <img src="https://i.imgur.com/4R3p0gG.png" alt="QR Code PIX Coiote BBQ" id="qrcode-image">
                 </div>
                 <p style="margin-top: 10px; font-size: 12px; color: #666;">Ou copie o código PIX:</p>
                 <div class="pix-code-text" id="pix-code-text">
@@ -961,12 +985,14 @@
     </div>
 
     <script>
+        // URL do Google Apps Script
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEyrCgdjHIHSa_BB11kFIJtIXSD9gr-9HIDNeT7SUJfkychVvcAVOgqeEZq4_hlV06/exec';
+
         // Código PIX do Coiote BBQ
         const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
 
         // Função para copiar código PIX
         function copiarCodigoPix() {
-            const pixCodeText = document.getElementById('pix-code-text');
             const textArea = document.createElement('textarea');
             textArea.value = CODIGO_PIX;
             document.body.appendChild(textArea);
@@ -974,6 +1000,146 @@
             document.execCommand('copy');
             document.body.removeChild(textArea);
             alert('Código PIX copiado para a área de transferência!');
+        }
+
+        // Funções de integração com Google Sheets
+        async function salvarProdutoGoogle(produto) {
+            const syncStatus = document.getElementById('sync-produto-status');
+            syncStatus.textContent = 'Enviando...';
+            syncStatus.className = 'sync-status sync-loading';
+            syncStatus.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'cadastrarProduto');
+                formData.append('nome', produto.nome);
+                formData.append('categoria', produto.categoria);
+                formData.append('preco', produto.preco);
+                formData.append('descricao', produto.descricao || '');
+                formData.append('id', produto.id);
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    syncStatus.textContent = '✓ Sincronizado';
+                    syncStatus.className = 'sync-status sync-success';
+                } else {
+                    syncStatus.textContent = '✗ Erro';
+                    syncStatus.className = 'sync-status sync-error';
+                }
+                
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar produto no Google Sheets:', error);
+                syncStatus.textContent = '✗ Erro de rede';
+                syncStatus.className = 'sync-status sync-error';
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                return { sucesso: false, erro: error.message };
+            }
+        }
+
+        async function salvarComandaGoogle(comanda) {
+            const syncStatus = document.getElementById('sync-comanda-status');
+            syncStatus.textContent = 'Enviando...';
+            syncStatus.className = 'sync-status sync-loading';
+            syncStatus.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'criarComanda');
+                formData.append('id', comanda.id);
+                formData.append('cliente', comanda.cliente);
+                formData.append('dataAbertura', comanda.dataAbertura);
+                formData.append('status', comanda.status);
+                formData.append('itens', JSON.stringify(comanda.itens));
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    syncStatus.textContent = '✓ Sincronizado';
+                    syncStatus.className = 'sync-status sync-success';
+                } else {
+                    syncStatus.textContent = '✗ Erro';
+                    syncStatus.className = 'sync-status sync-error';
+                }
+                
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar comanda no Google Sheets:', error);
+                syncStatus.textContent = '✗ Erro de rede';
+                syncStatus.className = 'sync-status sync-error';
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                return { sucesso: false, erro: error.message };
+            }
+        }
+
+        async function salvarVendaGoogle(venda) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'registrarVenda');
+                formData.append('comandaId', venda.comandaId);
+                formData.append('cliente', venda.cliente);
+                formData.append('total', venda.total);
+                formData.append('formaPagamento', venda.formaPagamento);
+                formData.append('data', venda.data);
+                formData.append('itens', JSON.stringify(venda.itens));
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                console.log('Venda salva no Google Sheets:', result);
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar venda no Google Sheets:', error);
+                return { sucesso: false, erro: error.message };
+            }
+        }
+
+        async function atualizarComandaGoogle(comandaId, itens, status) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'atualizarComanda');
+                formData.append('id', comandaId);
+                formData.append('itens', JSON.stringify(itens));
+                formData.append('status', status);
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                console.log('Comanda atualizada no Google Sheets:', result);
+                return result;
+            } catch (error) {
+                console.error('Erro ao atualizar comanda no Google Sheets:', error);
+                return { sucesso: false, erro: error.message };
+            }
         }
 
         // Sistema de navegação
@@ -1084,7 +1250,7 @@
             });
         }
 
-        function adicionarProduto() {
+        async function adicionarProduto() {
             const nome = document.getElementById('nome-produto').value;
             const categoria = document.getElementById('categoria').value;
             const preco = parseFloat(document.getElementById('preco').value);
@@ -1121,6 +1287,9 @@
                 
                 produtos.push(novoProduto);
                 mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+                
+                // Salvar no Google Sheets
+                await salvarProdutoGoogle(novoProduto);
             }
             
             localStorage.setItem('produtos', JSON.stringify(produtos));
@@ -1212,7 +1381,7 @@
             });
         }
 
-        function criarComanda() {
+        async function criarComanda() {
             const cliente = document.getElementById('cliente').value;
             
             if (!cliente) {
@@ -1223,15 +1392,20 @@
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
             const id = gerarIdComanda();
             
-            comandas.push({
+            const novaComanda = {
                 id: id,
                 cliente: cliente,
                 itens: [],
                 dataAbertura: new Date().toISOString(),
                 status: 'ativa'
-            });
+            };
+            
+            comandas.push(novaComanda);
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Salvar no Google Sheets
+            await salvarComandaGoogle(novaComanda);
             
             // Limpar formulário
             document.getElementById('cliente').value = '';
@@ -1455,7 +1629,7 @@
             totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
         }
 
-        function adicionarItemComanda(index) {
+        async function adicionarItemComanda(index) {
             const quantidade = parseInt(document.getElementById('quantidade').value);
             
             if (!produtoSelecionado) {
@@ -1486,6 +1660,10 @@
             }
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Atualizar comanda no Google Sheets
+            await atualizarComandaGoogle(comanda.id, comanda.itens, comanda.status);
+            
             atualizarItensComandaModal(index);
             
             // Resetar seleção
@@ -1495,14 +1673,18 @@
             });
         }
 
-        function removerItemComanda(comandaIndex, itemIndex) {
+        async function removerItemComanda(comandaIndex, itemIndex) {
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
             comandas[comandaIndex].itens.splice(itemIndex, 1);
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Atualizar comanda no Google Sheets
+            await atualizarComandaGoogle(comandas[comandaIndex].id, comandas[comandaIndex].itens, comandas[comandaIndex].status);
+            
             atualizarItensComandaModal(comandaIndex);
         }
 
-        function fecharComanda(index) {
+        async function fecharComanda(index) {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
                 return;
@@ -1514,17 +1696,21 @@
             const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
             
             // Registrar venda
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            vendas.push({
+            const venda = {
                 comandaId: comanda.id,
                 cliente: comanda.cliente,
                 itens: [...comanda.itens],
                 total: total,
                 formaPagamento: formaPagamento,
                 data: new Date().toISOString()
-            });
+            };
             
+            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            vendas.push(venda);
             localStorage.setItem('vendas', JSON.stringify(vendas));
+            
+            // Salvar venda no Google Sheets
+            await salvarVendaGoogle(venda);
             
             // Remover comanda
             comandas.splice(index, 1);
