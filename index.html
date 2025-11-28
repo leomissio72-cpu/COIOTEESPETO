@@ -1981,7 +1981,7 @@
             }
         }
 
-        // Funções para relatórios
+        // CORREÇÃO: Função para carregar relatórios
         function carregarRelatorios() {
             const dataInicio = document.getElementById('data-inicio').value;
             const dataFim = document.getElementById('data-fim').value;
@@ -1990,14 +1990,17 @@
             
             // Filtrar por data se especificado
             if (dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= dataInicio);
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate >= dataInicio;
+                });
             }
             
             if (dataFim) {
-                // Adicionar um dia para incluir vendas do dia final
-                const fim = new Date(dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate <= dataFim;
+                });
             }
             
             const tabela = document.getElementById('relatorio-vendas');
@@ -2008,9 +2011,13 @@
                 return;
             }
             
+            // Ordenar vendas por data (mais recente primeiro)
+            vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
             vendas.forEach((venda, index) => {
                 const data = new Date(venda.data);
                 const dataFormatada = data.toLocaleDateString('pt-BR');
+                const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 
                 // Formatar forma de pagamento
                 let pagamentoFormatado = '';
@@ -2038,7 +2045,7 @@
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${dataFormatada}</td>
+                    <td>${dataFormatada} ${horaFormatada}</td>
                     <td>#${venda.comandaId}</td>
                     <td>${venda.cliente || 'Cliente não informado'}</td>
                     <td>R$ ${venda.total.toFixed(2)}</td>
@@ -2130,14 +2137,17 @@
             
             // Filtrar por data se especificado
             if (dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= dataInicio);
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate >= dataInicio;
+                });
             }
             
             if (dataFim) {
-                // Adicionar um dia para incluir vendas do dia final
-                const fim = new Date(dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate <= dataFim;
+                });
             }
             
             if (vendas.length === 0) {
@@ -2211,13 +2221,17 @@
             
             // Aplicar filtros nas vendas
             if (filtrosDashboard.dataInicio) {
-                vendas = vendas.filter(venda => venda.data >= filtrosDashboard.dataInicio);
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate >= filtrosDashboard.dataInicio;
+                });
             }
             
             if (filtrosDashboard.dataFim) {
-                const fim = new Date(filtrosDashboard.dataFim);
-                fim.setDate(fim.getDate() + 1);
-                vendas = vendas.filter(venda => venda.data < fim.toISOString());
+                vendas = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate <= filtrosDashboard.dataFim;
+                });
             }
             
             if (filtrosDashboard.categoria) {
@@ -2247,7 +2261,10 @@
             
             // Vendas hoje
             const hoje = new Date().toISOString().split('T')[0];
-            const vendasHoje = vendas.filter(venda => venda.data.startsWith(hoje)).length;
+            const vendasHoje = vendas.filter(venda => {
+                const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                return vendaDate === hoje;
+            }).length;
             document.getElementById('vendas-hoje').textContent = vendasHoje;
             
             // Comandas ativas no dashboard
