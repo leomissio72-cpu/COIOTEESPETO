@@ -44,6 +44,7 @@
             color: white;
             padding: 15px 0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .header-content {
@@ -572,6 +573,56 @@
             background-color: #e8f5e8;
         }
         
+        /* Status de conexão - AGORA NO CANTO SUPERIOR ESQUERDO */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .connection-online {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .connection-offline {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        /* Botões de navegação entre páginas */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pagination-btn:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .pagination-btn.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -728,10 +779,19 @@
             .parcelas-options {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .pagination {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Indicador de status da conexão - AGORA NO CANTO SUPERIOR ESQUERDO -->
+    <div id="connectionStatus" class="connection-status connection-online">
+        ● Online
+    </div>
+
     <header>
         <div class="container header-content">
             <div class="logo">Sistema Restaurante - Coiote BBQ</div>
@@ -834,6 +894,13 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginação Dashboard -->
+            <div class="pagination" id="pagination-dashboard">
+                <button class="pagination-btn active" data-page="1">1</button>
+                <button class="pagination-btn" data-page="2">2</button>
+                <button class="pagination-btn" data-page="3">3</button>
+            </div>
         </section>
 
         <!-- Comandas -->
@@ -850,12 +917,18 @@
                 </div>
                 
                 <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
-                <span id="sync-comanda-status" class="sync-status hidden"></span>
             </div>
             
             <div class="card">
                 <h2>Comandas Ativas</h2>
                 <div id="comandas-lista"></div>
+            </div>
+            
+            <!-- Paginação Comandas -->
+            <div class="pagination" id="pagination-comandas">
+                <button class="pagination-btn active" data-page="1">1</button>
+                <button class="pagination-btn" data-page="2">2</button>
+                <button class="pagination-btn" data-page="3">3</button>
             </div>
         </section>
 
@@ -898,7 +971,6 @@
                 <div class="form-row">
                     <div class="form-group">
                         <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
-                        <span id="sync-produto-status" class="sync-status hidden"></span>
                     </div>
                     <div class="form-group">
                         <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
@@ -920,6 +992,13 @@
                     <tbody id="lista-produtos">
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Paginação Produtos -->
+            <div class="pagination" id="pagination-produtos">
+                <button class="pagination-btn active" data-page="1">1</button>
+                <button class="pagination-btn" data-page="2">2</button>
+                <button class="pagination-btn" data-page="3">3</button>
             </div>
         </section>
 
@@ -969,6 +1048,13 @@
                     <tbody id="relatorio-vendas">
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Paginação Relatórios -->
+            <div class="pagination" id="pagination-relatorios">
+                <button class="pagination-btn active" data-page="1">1</button>
+                <button class="pagination-btn" data-page="2">2</button>
+                <button class="pagination-btn" data-page="3">3</button>
             </div>
         </section>
     </div>
@@ -1058,11 +1144,11 @@
                 <div id="info-parcelas" style="margin-top: 10px; font-weight: bold;"></div>
             </div>
             
-            <!-- Seção de Desconto -->
+            <!-- Seção de Desconto (EM VALOR, NÃO PORCENTAGEM) -->
             <div class="desconto-section">
-                <h4>Aplicar Desconto</h4>
+                <h4>Aplicar Desconto (R$)</h4>
                 <div class="desconto-input-group">
-                    <input type="number" id="percentual-desconto" min="0" max="100" step="0.5" placeholder="% de desconto">
+                    <input type="number" id="valor-desconto" min="0" step="0.01" placeholder="Valor do desconto em R$">
                     <button class="btn btn-warning" id="aplicar-desconto">Aplicar</button>
                 </div>
                 <div id="desconto-info" style="margin-top: 10px;"></div>
@@ -1121,8 +1207,7 @@
         // Código PIX do Coiote BBQ
         const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
 
-        // Variáveis para desconto
-        let percentualDesconto = 0;
+        // Variáveis para desconto (EM VALOR, NÃO PORCENTAGEM)
         let valorDesconto = 0;
         let totalComDesconto = 0;
 
@@ -1142,6 +1227,14 @@
         };
         let produtoEmEdicao = null;
 
+        // Configuração de paginação
+        const paginationConfig = {
+            dashboard: { currentPage: 1, itemsPerPage: 5 },
+            comandas: { currentPage: 1, itemsPerPage: 5 },
+            produtos: { currentPage: 1, itemsPerPage: 10 },
+            relatorios: { currentPage: 1, itemsPerPage: 10 }
+        };
+
         // Categorias disponíveis
         const categorias = [
             "Espeto",
@@ -1151,6 +1244,10 @@
             "Itens para Churrasco",
             "Espeto Congelado"
         ];
+
+        // =============================================
+        // FUNÇÕES DE SINCRONIZAÇÃO FIREBASE
+        // =============================================
 
         // Função para copiar código PIX
         function copiarCodigoPix() {
@@ -1163,45 +1260,49 @@
             alert('Código PIX copiado para a área de transferência!');
         }
 
-        // Função para aplicar desconto
+        // Função para aplicar desconto (EM VALOR, NÃO PORCENTAGEM)
         function aplicarDesconto() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[comandaAtual];
+            if (comandaAtual === null) return;
             
-            if (!comanda || comanda.itens.length === 0) {
-                alert('Não é possível aplicar desconto em uma comanda sem itens.');
-                return;
-            }
+            const valorInput = document.getElementById('valor-desconto');
+            valorDesconto = parseFloat(valorInput.value) || 0;
             
-            const percentualInput = document.getElementById('percentual-desconto');
-            percentualDesconto = parseFloat(percentualInput.value) || 0;
-            
-            if (percentualDesconto < 0 || percentualDesconto > 100) {
-                alert('Por favor, insira um percentual de desconto válido (0-100%).');
-                return;
-            }
-            
-            // Calcular total da comanda
-            const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            
-            // Calcular desconto
-            valorDesconto = (totalComanda * percentualDesconto) / 100;
-            totalComDesconto = totalComanda - valorDesconto;
-            
-            // Atualizar exibição
-            const descontoInfo = document.getElementById('desconto-info');
-            descontoInfo.innerHTML = `
-                <div class="desconto-aplicado">
-                    <p>Desconto aplicado: ${percentualDesconto}%</p>
-                    <p>Valor do desconto: <span class="desconto-valor">- R$ ${valorDesconto.toFixed(2)}</span></p>
-                    <p class="total-com-desconto">Total com desconto: R$ ${totalComDesconto.toFixed(2)}</p>
-                </div>
-            `;
+            // Buscar comanda atual do Firebase
+            db.collection("comandas").doc(comandaAtual.toString()).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const comanda = doc.data();
+                        
+                        // Calcular total da comanda
+                        const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                        
+                        // Validar o valor do desconto
+                        if (valorDesconto < 0 || valorDesconto > totalComanda) {
+                            alert('Por favor, insira um valor de desconto válido (não pode ser negativo nem maior que o total).');
+                            return;
+                        }
+                        
+                        // Calcular total com desconto
+                        totalComDesconto = totalComanda - valorDesconto;
+                        
+                        // Atualizar exibição
+                        const descontoInfo = document.getElementById('desconto-info');
+                        descontoInfo.innerHTML = `
+                            <div class="desconto-aplicado">
+                                <p>Desconto aplicado: <span class="desconto-valor">- R$ ${valorDesconto.toFixed(2)}</span></p>
+                                <p class="total-com-desconto">Total com desconto: R$ ${totalComDesconto.toFixed(2)}</p>
+                            </div>
+                        `;
 
-            // Atualizar informações de parcelas se estiver visível
-            if (formaPagamento === 'credito') {
-                atualizarInfoParcelas();
-            }
+                        // Atualizar informações de parcelas se estiver visível
+                        if (formaPagamento === 'credito') {
+                            atualizarInfoParcelas();
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar comanda:", error);
+                });
         }
 
         // Função para mostrar/ocultar seção de parcelas
@@ -1218,131 +1319,121 @@
 
         // Função para atualizar informações das parcelas
         function atualizarInfoParcelas() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[comandaAtual];
+            if (comandaAtual === null) return;
             
-            if (!comanda || comanda.itens.length === 0) return;
+            // Buscar comanda atual do Firebase
+            db.collection("comandas").doc(comandaAtual.toString()).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const comanda = doc.data();
+                        const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                        const totalFinal = totalComDesconto > 0 ? totalComDesconto : totalComanda;
+                        const valorParcela = totalFinal / numeroParcelas;
+                        
+                        const infoParcelas = document.getElementById('info-parcelas');
+                        infoParcelas.innerHTML = `
+                            ${numeroParcelas}x de R$ ${valorParcela.toFixed(2)} = R$ ${totalFinal.toFixed(2)}
+                        `;
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar comanda:", error);
+                });
+        }
+
+        // =============================================
+        // LISTENERS EM TEMPO REAL DO FIREBASE
+        // =============================================
+
+        // Escutar mudanças em produtos
+        function setupProdutosListener() {
+            db.collection("produtos")
+                .orderBy("timestamp", "desc")
+                .onSnapshot((snapshot) => {
+                    const produtos = [];
+                    snapshot.forEach(doc => {
+                        produtos.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    // Atualizar interface
+                    carregarProdutos(produtos);
+                    carregarFiltrosProdutos(produtos);
+                    
+                    // Atualizar dashboard se estiver ativo
+                    if (document.getElementById('dashboard').classList.contains('active')) {
+                        atualizarDashboard();
+                    }
+                }, (error) => {
+                    console.error("Erro ao escutar produtos:", error);
+                });
+        }
+
+        // Escutar mudanças em comandas ativas
+        function setupComandasListener() {
+            db.collection("comandas")
+                .where("status", "==", "ativa")
+                .onSnapshot((snapshot) => {
+                    const comandas = [];
+                    snapshot.forEach(doc => {
+                        comandas.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    // Atualizar interface
+                    carregarComandas(comandas);
+                    
+                    // Atualizar dashboard se estiver ativo
+                    if (document.getElementById('dashboard').classList.contains('active')) {
+                        atualizarDashboard();
+                    }
+                }, (error) => {
+                    console.error("Erro ao escutar comandas:", error);
+                });
+        }
+
+        // Escutar mudanças em vendas
+        function setupVendasListener() {
+            db.collection("vendas")
+                .orderBy("timestamp", "desc")
+                .onSnapshot((snapshot) => {
+                    const vendas = [];
+                    snapshot.forEach(doc => {
+                        vendas.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    // Atualizar relatórios se estiver ativo
+                    if (document.getElementById('relatorios').classList.contains('active')) {
+                        carregarRelatorios(vendas);
+                    }
+                    
+                    // Atualizar dashboard se estiver ativo
+                    if (document.getElementById('dashboard').classList.contains('active')) {
+                        atualizarDashboard();
+                    }
+                }, (error) => {
+                    console.error("Erro ao escutar vendas:", error);
+                });
+        }
+
+        // Monitorar status da conexão
+        function setupConnectionListener() {
+            const connectionStatus = document.getElementById('connectionStatus');
             
-            const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            const totalFinal = totalComDesconto > 0 ? totalComDesconto : totalComanda;
-            const valorParcela = totalFinal / numeroParcelas;
-            
-            const infoParcelas = document.getElementById('info-parcelas');
-            infoParcelas.innerHTML = `
-                ${numeroParcelas}x de R$ ${valorParcela.toFixed(2)} = R$ ${totalFinal.toFixed(2)}
-            `;
+            firebase.database().ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    connectionStatus.textContent = '● Online';
+                    connectionStatus.className = 'connection-status connection-online';
+                } else {
+                    connectionStatus.textContent = '● Offline';
+                    connectionStatus.className = 'connection-status connection-offline';
+                }
+            });
         }
 
-        // Funções de integração com Firebase
-        async function salvarProdutoFirebase(produto) {
-            const syncStatus = document.getElementById('sync-produto-status');
-            syncStatus.textContent = 'Enviando...';
-            syncStatus.className = 'sync-status sync-loading';
-            syncStatus.classList.remove('hidden');
+        // =============================================
+        // FUNÇÕES DE NAVEGAÇÃO CORRIGIDAS
+        // =============================================
 
-            try {
-                await db.collection("produtos").doc(produto.id.toString()).set({
-                    nome: produto.nome,
-                    categoria: produto.categoria,
-                    preco: produto.preco,
-                    descricao: produto.descricao || '',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                syncStatus.textContent = '✓ Sincronizado';
-                syncStatus.className = 'sync-status sync-success';
-                
-                setTimeout(() => {
-                    syncStatus.classList.add('hidden');
-                }, 3000);
-                
-                return { sucesso: true };
-            } catch (error) {
-                console.error('Erro ao salvar produto no Firebase:', error);
-                syncStatus.textContent = '✗ Erro';
-                syncStatus.className = 'sync-status sync-error';
-                setTimeout(() => {
-                    syncStatus.classList.add('hidden');
-                }, 3000);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function salvarComandaFirebase(comanda) {
-            const syncStatus = document.getElementById('sync-comanda-status');
-            syncStatus.textContent = 'Enviando...';
-            syncStatus.className = 'sync-status sync-loading';
-            syncStatus.classList.remove('hidden');
-
-            try {
-                await db.collection("comandas").doc(comanda.id.toString()).set({
-                    cliente: comanda.cliente,
-                    dataAbertura: comanda.dataAbertura,
-                    status: comanda.status,
-                    itens: comanda.itens,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                syncStatus.textContent = '✓ Sincronizado';
-                syncStatus.className = 'sync-status sync-success';
-                
-                setTimeout(() => {
-                    syncStatus.classList.add('hidden');
-                }, 3000);
-                
-                return { sucesso: true };
-            } catch (error) {
-                console.error('Erro ao salvar comanda no Firebase:', error);
-                syncStatus.textContent = '✗ Erro';
-                syncStatus.className = 'sync-status sync-error';
-                setTimeout(() => {
-                    syncStatus.classList.add('hidden');
-                }, 3000);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function salvarVendaFirebase(venda) {
-            try {
-                await db.collection("vendas").doc(venda.comandaId.toString()).set({
-                    comandaId: venda.comandaId,
-                    cliente: venda.cliente,
-                    total: venda.total,
-                    desconto: venda.desconto || 0,
-                    percentualDesconto: venda.percentualDesconto || 0,
-                    totalFinal: venda.totalFinal,
-                    formaPagamento: venda.formaPagamento,
-                    numeroParcelas: venda.numeroParcelas || 1,
-                    data: venda.data,
-                    itens: venda.itens,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                console.log('Venda salva no Firebase');
-                return { sucesso: true };
-            } catch (error) {
-                console.error('Erro ao salvar venda no Firebase:', error);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function atualizarComandaFirebase(comandaId, itens, status) {
-            try {
-                await db.collection("comandas").doc(comandaId.toString()).update({
-                    itens: itens,
-                    status: status,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                console.log('Comanda atualizada no Firebase');
-                return { sucesso: true };
-            } catch (error) {
-                console.error('Erro ao atualizar comanda no Firebase:', error);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        // Sistema de navegação
+        // Sistema de navegação CORRIGIDO
         function setupNavigation() {
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', function(e) {
@@ -1363,13 +1454,12 @@
                     // Atualizar dados específicos da seção
                     if (sectionId === 'dashboard') {
                         atualizarDashboard();
-                        carregarFiltrosProdutos();
                     } else if (sectionId === 'comandas') {
-                        carregarComandas();
+                        // Dados já são carregados pelo listener
                     } else if (sectionId === 'produtos') {
-                        carregarProdutos();
+                        // Dados já são carregados pelo listener
                     } else if (sectionId === 'relatorios') {
-                        carregarRelatorios();
+                        // Dados já são carregados pelo listener
                     }
                 });
             });
@@ -1380,37 +1470,90 @@
             });
         }
 
-        // Funções para gerenciar produtos
-        function carregarProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const listaProdutos = document.getElementById('lista-produtos');
+        // =============================================
+        // FUNÇÕES DE PAGINAÇÃO
+        // =============================================
+
+        // Configurar paginação para uma seção
+        function setupPagination(section, data, itemsPerPage, renderFunction) {
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            const paginationContainer = document.getElementById(`pagination-${section}`);
             
-            listaProdutos.innerHTML = '';
+            // Limpar paginação anterior
+            paginationContainer.innerHTML = '';
             
-            if (produtos.length === 0) {
-                listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
-                return;
+            // Criar botões de paginação
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.className = `pagination-btn ${i === paginationConfig[section].currentPage ? 'active' : ''}`;
+                button.textContent = i;
+                button.dataset.page = i;
+                
+                button.addEventListener('click', () => {
+                    paginationConfig[section].currentPage = i;
+                    
+                    // Atualizar estado dos botões
+                    document.querySelectorAll(`#pagination-${section} .pagination-btn`).forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    
+                    // Renderizar dados da página atual
+                    const startIndex = (i - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const pageData = data.slice(startIndex, endIndex);
+                    
+                    renderFunction(pageData);
+                });
+                
+                paginationContainer.appendChild(button);
             }
             
-            produtos.forEach((produto, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${produto.nome}</td>
-                    <td>${produto.categoria}</td>
-                    <td>R$ ${produto.preco.toFixed(2)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-warning" onclick="editarProduto(${index})">Editar</button>
-                            <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
-                        </div>
-                    </td>
-                `;
-                listaProdutos.appendChild(tr);
+            // Renderizar primeira página
+            const startIndex = (paginationConfig[section].currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = data.slice(startIndex, endIndex);
+            
+            renderFunction(pageData);
+        }
+
+        // =============================================
+        // FUNÇÕES DO SISTEMA
+        // =============================================
+
+        // Funções para gerenciar produtos
+        function carregarProdutos(produtos) {
+            if (!produtos) return;
+            
+            // Configurar paginação para produtos
+            setupPagination('produtos', produtos, paginationConfig.produtos.itemsPerPage, (pageProdutos) => {
+                const listaProdutos = document.getElementById('lista-produtos');
+                listaProdutos.innerHTML = '';
+                
+                if (pageProdutos.length === 0) {
+                    listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
+                    return;
+                }
+                
+                pageProdutos.forEach((produto) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${produto.nome}</td>
+                        <td>${produto.categoria}</td>
+                        <td>R$ ${produto.preco.toFixed(2)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-warning" onclick="editarProduto('${produto.id}')">Editar</button>
+                                <button class="btn btn-danger" onclick="excluirProduto('${produto.id}')">Excluir</button>
+                            </div>
+                        </td>
+                    `;
+                    listaProdutos.appendChild(tr);
+                });
             });
         }
 
-        function carregarFiltrosProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+        function carregarFiltrosProdutos(produtos) {
             const filtroProduto = document.getElementById('filtro-produto');
             
             // Limpar opções existentes (mantendo a primeira)
@@ -1419,12 +1562,14 @@
             }
             
             // Adicionar produtos
-            produtos.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = produto.id;
-                option.textContent = produto.nome;
-                filtroProduto.appendChild(option);
-            });
+            if (produtos) {
+                produtos.forEach(produto => {
+                    const option = document.createElement('option');
+                    option.value = produto.id;
+                    option.textContent = produto.nome;
+                    filtroProduto.appendChild(option);
+                });
+            }
         }
 
         async function adicionarProduto() {
@@ -1438,67 +1583,68 @@
                 return;
             }
             
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            
-            if (produtoEmEdicao !== null) {
-                // Modo edição - atualizar produto existente
-                produtos[produtoEmEdicao] = {
-                    ...produtos[produtoEmEdicao],
-                    nome,
-                    categoria,
-                    preco,
-                    descricao
-                };
+            try {
+                if (produtoEmEdicao !== null) {
+                    // Modo edição - atualizar produto existente
+                    await db.collection("produtos").doc(produtoEmEdicao).update({
+                        nome: nome,
+                        categoria: categoria,
+                        preco: preco,
+                        descricao: descricao || '',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
+                    cancelarEdicao();
+                } else {
+                    // Modo adição - adicionar novo produto
+                    await db.collection("produtos").add({
+                        nome: nome,
+                        categoria: categoria,
+                        preco: preco,
+                        descricao: descricao || '',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+                }
                 
-                mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
-                cancelarEdicao();
-            } else {
-                // Modo adição - adicionar novo produto
-                const novoProduto = {
-                    nome,
-                    categoria,
-                    preco,
-                    descricao,
-                    id: Date.now()
-                };
+                // Limpar formulário
+                document.getElementById('nome-produto').value = '';
+                document.getElementById('categoria').value = '';
+                document.getElementById('preco').value = '';
+                document.getElementById('descricao').value = '';
                 
-                produtos.push(novoProduto);
-                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
-                
-                // Salvar no Firebase
-                await salvarProdutoFirebase(novoProduto);
+            } catch (error) {
+                console.error("Erro ao salvar produto:", error);
+                mostrarAlerta('produto-error', 'Erro ao salvar produto. Tente novamente.');
             }
-            
-            localStorage.setItem('produtos', JSON.stringify(produtos));
-            
-            // Limpar formulário
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('categoria').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('descricao').value = '';
-            
-            carregarProdutos();
-            carregarFiltrosProdutos();
-            atualizarDashboard();
         }
 
-        function editarProduto(index) {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const produto = produtos[index];
-            
-            // Preencher formulário com dados do produto
-            document.getElementById('nome-produto').value = produto.nome;
-            document.getElementById('categoria').value = produto.categoria;
-            document.getElementById('preco').value = produto.preco;
-            document.getElementById('descricao').value = produto.descricao || '';
-            
-            // Alterar para modo edição
-            produtoEmEdicao = index;
-            document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
-            document.getElementById('cancelar-edicao').classList.remove('hidden');
-            
-            // Rolar para o formulário
-            document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
+        async function editarProduto(id) {
+            try {
+                const doc = await db.collection("produtos").doc(id).get();
+                if (doc.exists) {
+                    const produto = doc.data();
+                    
+                    // Preencher formulário com dados do produto
+                    document.getElementById('nome-produto').value = produto.nome;
+                    document.getElementById('categoria').value = produto.categoria;
+                    document.getElementById('preco').value = produto.preco;
+                    document.getElementById('descricao').value = produto.descricao || '';
+                    
+                    // Alterar para modo edição
+                    produtoEmEdicao = id;
+                    document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
+                    document.getElementById('cancelar-edicao').classList.remove('hidden');
+                    
+                    // Rolar para o formulário
+                    document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error("Erro ao buscar produto:", error);
+                mostrarAlerta('produto-error', 'Erro ao carregar produto.');
+            }
         }
 
         function cancelarEdicao() {
@@ -1514,47 +1660,46 @@
             document.getElementById('cancelar-edicao').classList.add('hidden');
         }
 
-        function excluirProduto(index) {
+        async function excluirProduto(id) {
             if (confirm('Tem certeza que deseja excluir este produto?')) {
-                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-                produtos.splice(index, 1);
-                localStorage.setItem('produtos', JSON.stringify(produtos));
-                carregarProdutos();
-                carregarFiltrosProdutos();
-                atualizarDashboard();
-                
-                // Se estava editando o produto excluído, cancelar a edição
-                if (produtoEmEdicao === index) {
-                    cancelarEdicao();
+                try {
+                    await db.collection("produtos").doc(id).delete();
+                    // O listener vai atualizar automaticamente a interface
+                } catch (error) {
+                    console.error("Erro ao excluir produto:", error);
+                    mostrarAlerta('produto-error', 'Erro ao excluir produto.');
                 }
             }
         }
 
         // Funções para gerenciar comandas
-        function carregarComandas() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const listaComandas = document.getElementById('comandas-lista');
+        function carregarComandas(comandas) {
+            if (!comandas) return;
             
-            listaComandas.innerHTML = '';
-            
-            if (comandas.length === 0) {
-                listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
-                return;
-            }
-            
-            comandas.forEach((comanda, index) => {
-                const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+            // Configurar paginação para comandas
+            setupPagination('comandas', comandas, paginationConfig.comandas.itemsPerPage, (pageComandas) => {
+                const listaComandas = document.getElementById('comandas-lista');
+                listaComandas.innerHTML = '';
                 
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `
-                    <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
-                    <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
-                    <p><strong>Itens:</strong> ${comanda.itens.length}</p>
-                    <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
-                    <button class="btn btn-primary" onclick="abrirModalComanda(${index})">Ver/Editar</button>
-                `;
-                listaComandas.appendChild(div);
+                if (pageComandas.length === 0) {
+                    listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                    return;
+                }
+                
+                pageComandas.forEach((comanda) => {
+                    const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
+                        <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+                        <p><strong>Itens:</strong> ${comanda.itens.length}</p>
+                        <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
+                        <button class="btn btn-primary" onclick="abrirModalComanda('${comanda.id}')">Ver/Editar</button>
+                    `;
+                    listaComandas.appendChild(div);
+                });
             });
         }
 
@@ -1566,43 +1711,32 @@
                 return;
             }
             
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const id = gerarIdComanda();
-            
-            const novaComanda = {
-                id: id,
-                cliente: cliente,
-                itens: [],
-                dataAbertura: new Date().toISOString(),
-                status: 'ativa'
-            };
-            
-            comandas.push(novaComanda);
-            
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Salvar no Firebase
-            await salvarComandaFirebase(novaComanda);
-            
-            // Limpar formulário
-            document.getElementById('cliente').value = '';
-            
-            mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
-            carregarComandas();
-            atualizarDashboard();
+            try {
+                const novaComanda = {
+                    cliente: cliente,
+                    itens: [],
+                    dataAbertura: new Date().toISOString(),
+                    status: 'ativa',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection("comandas").add(novaComanda);
+                
+                // Limpar formulário
+                document.getElementById('cliente').value = '';
+                
+                mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
+                // O listener vai atualizar automaticamente a lista
+            } catch (error) {
+                console.error("Erro ao criar comanda:", error);
+                mostrarAlerta('comanda-error', 'Erro ao criar comanda. Tente novamente.');
+            }
         }
 
-        function gerarIdComanda() {
-            let ultimoId = parseInt(localStorage.getItem('ultimoIdComanda')) || 0;
-            ultimoId++;
-            localStorage.setItem('ultimoIdComanda', ultimoId.toString());
-            return ultimoId;
-        }
-
-        function abrirModalComanda(index) {
+        function abrirModalComanda(id) {
             const modal = document.getElementById('modal-comanda');
             modal.style.display = 'flex';
-            comandaAtual = index;
+            comandaAtual = id;
             
             // Resetar seleção
             produtoSelecionado = null;
@@ -1611,20 +1745,19 @@
             // Criar botões de categoria
             criarBotoesCategoria();
             
-            // Carregar produtos
+            // Carregar produtos do Firebase
             carregarProdutosModal();
             
             // Atualizar itens da comanda
-            atualizarItensComandaModal(index);
+            atualizarItensComandaModal(id);
             
             // Configurar eventos
-            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(index);
-            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(index);
-            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(index);
+            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(id);
+            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(id);
+            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(id);
             document.getElementById('salvar-fechar-comanda').onclick = () => {
                 modal.style.display = 'none';
-                carregarComandas();
-                atualizarDashboard();
+                // O listener vai atualizar automaticamente a lista
             };
         }
 
@@ -1671,172 +1804,199 @@
         }
 
         function carregarProdutosModal() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const container = document.getElementById('product-grid');
-            container.innerHTML = '';
-            
-            // Filtrar produtos por categoria
-            let produtosFiltrados = produtos;
-            if (categoriaAtual) {
-                produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
-            }
-            
-            if (produtosFiltrados.length === 0) {
-                container.innerHTML = '<p>Nenhum produto encontrado</p>';
-                return;
-            }
-            
-            produtosFiltrados.forEach(produto => {
-                const div = document.createElement('div');
-                div.className = 'product-item';
-                if (produtoSelecionado && produtoSelecionado.id === produto.id) {
-                    div.classList.add('selected');
-                }
-                
-                div.innerHTML = `
-                    <div class="product-name">${produto.nome}</div>
-                    <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
-                `;
-                
-                div.onclick = () => {
-                    // Desselecionar produto anterior
-                    document.querySelectorAll('.product-item').forEach(item => {
-                        item.classList.remove('selected');
+            // Buscar produtos do Firebase
+            db.collection("produtos")
+                .get()
+                .then((snapshot) => {
+                    const produtos = [];
+                    snapshot.forEach(doc => {
+                        produtos.push({ id: doc.id, ...doc.data() });
                     });
                     
-                    // Selecionar produto atual
-                    div.classList.add('selected');
-                    produtoSelecionado = produto;
-                };
-                
-                container.appendChild(div);
-            });
-        }
-
-        function abrirModalPagamento(index) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            if (comanda.itens.length === 0) {
-                alert('Não é possível fechar uma comanda sem itens.');
-                return;
-            }
-            
-            // Resetar desconto
-            percentualDesconto = 0;
-            valorDesconto = 0;
-            totalComDesconto = 0;
-            document.getElementById('percentual-desconto').value = '';
-            document.getElementById('desconto-info').innerHTML = '';
-            
-            // Resetar parcelas
-            numeroParcelas = 1;
-            
-            // Fechar modal da comanda
-            document.getElementById('modal-comanda').style.display = 'none';
-            
-            // Abrir modal de pagamento
-            const modalPagamento = document.getElementById('modal-pagamento');
-            modalPagamento.style.display = 'flex';
-            
-            // Resetar seleção de pagamento
-            formaPagamento = null;
-            document.querySelectorAll('.payment-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Esconder seções inicialmente
-            document.getElementById('pix-code-container').classList.add('hidden');
-            document.getElementById('parcelas-section').classList.add('hidden');
-            
-            // Configurar eventos de seleção de pagamento
-            document.querySelectorAll('.payment-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    formaPagamento = this.getAttribute('data-payment');
+                    const container = document.getElementById('product-grid');
+                    container.innerHTML = '';
                     
-                    // Mostrar QR Code PIX se selecionado
-                    if (formaPagamento === 'pix') {
-                        document.getElementById('pix-code-container').classList.remove('hidden');
-                    } else {
-                        document.getElementById('pix-code-container').classList.add('hidden');
+                    // Filtrar produtos por categoria
+                    let produtosFiltrados = produtos;
+                    if (categoriaAtual) {
+                        produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
                     }
                     
-                    // Mostrar/ocultar seção de parcelas
-                    toggleParcelasSection();
+                    if (produtosFiltrados.length === 0) {
+                        container.innerHTML = '<p>Nenhum produto encontrado</p>';
+                        return;
+                    }
+                    
+                    produtosFiltrados.forEach(produto => {
+                        const div = document.createElement('div');
+                        div.className = 'product-item';
+                        if (produtoSelecionado && produtoSelecionado.id === produto.id) {
+                            div.classList.add('selected');
+                        }
+                        
+                        div.innerHTML = `
+                            <div class="product-name">${produto.nome}</div>
+                            <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
+                        `;
+                        
+                        div.onclick = () => {
+                            // Desselecionar produto anterior
+                            document.querySelectorAll('.product-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            // Selecionar produto atual
+                            div.classList.add('selected');
+                            produtoSelecionado = produto;
+                        };
+                        
+                        container.appendChild(div);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar produtos:", error);
                 });
-            });
-            
-            // Configurar eventos das parcelas
-            document.querySelectorAll('.parcela-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.parcela-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    numeroParcelas = parseInt(this.getAttribute('data-parcelas'));
-                    atualizarInfoParcelas();
-                });
-            });
-            
-            // Selecionar primeira parcela por padrão
-            document.querySelector('.parcela-option[data-parcelas="1"]').classList.add('selected');
-            
-            // Configurar eventos dos botões
-            document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
-            document.getElementById('cancelar-pagamento').onclick = () => {
-                modalPagamento.style.display = 'none';
-                document.getElementById('modal-comanda').style.display = 'flex';
-            };
-            
-            // Configurar evento do botão de desconto
-            document.getElementById('aplicar-desconto').onclick = aplicarDesconto;
-            
-            // Fechar modal
-            document.querySelector('#modal-pagamento .close-btn').onclick = () => {
-                modalPagamento.style.display = 'none';
-                document.getElementById('modal-comanda').style.display = 'flex';
-            };
         }
 
-        function atualizarItensComandaModal(index) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            const container = document.getElementById('itens-comanda-modal');
-            const totalElement = document.getElementById('total-comanda-modal');
-            
-            container.innerHTML = '';
-            
-            if (comanda.itens.length === 0) {
-                container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
-                totalElement.textContent = 'Total: R$ 0,00';
-                return;
-            }
-            
-            let total = 0;
-            
-            comanda.itens.forEach((item, itemIndex) => {
-                const itemTotal = item.preco * item.quantidade;
-                total += itemTotal;
-                
-                const div = document.createElement('div');
-                div.className = 'comanda-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${item.nome}</strong><br>
-                        <small>R$ ${item.preco.toFixed(2)} x ${item.quantidade}</small>
-                    </div>
-                    <div>
-                        <span>R$ ${itemTotal.toFixed(2)}</span>
-                        <button class="btn btn-danger" onclick="removerItemComanda(${index}, ${itemIndex})">Remover</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            
-            totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
+        function abrirModalPagamento(id) {
+            // Buscar comanda do Firebase
+            db.collection("comandas").doc(id).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const comanda = doc.data();
+                        
+                        if (comanda.itens.length === 0) {
+                            alert('Não é possível fechar uma comanda sem itens.');
+                            return;
+                        }
+                        
+                        // Resetar desconto
+                        valorDesconto = 0;
+                        totalComDesconto = 0;
+                        document.getElementById('valor-desconto').value = '';
+                        document.getElementById('desconto-info').innerHTML = '';
+                        
+                        // Resetar parcelas
+                        numeroParcelas = 1;
+                        
+                        // Fechar modal da comanda
+                        document.getElementById('modal-comanda').style.display = 'none';
+                        
+                        // Abrir modal de pagamento
+                        const modalPagamento = document.getElementById('modal-pagamento');
+                        modalPagamento.style.display = 'flex';
+                        
+                        // Resetar seleção de pagamento
+                        formaPagamento = null;
+                        document.querySelectorAll('.payment-option').forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                        
+                        // Esconder seções inicialmente
+                        document.getElementById('pix-code-container').classList.add('hidden');
+                        document.getElementById('parcelas-section').classList.add('hidden');
+                        
+                        // Configurar eventos de seleção de pagamento
+                        document.querySelectorAll('.payment-option').forEach(option => {
+                            option.addEventListener('click', function() {
+                                document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                                this.classList.add('selected');
+                                formaPagamento = this.getAttribute('data-payment');
+                                
+                                // Mostrar QR Code PIX se selecionado
+                                if (formaPagamento === 'pix') {
+                                    document.getElementById('pix-code-container').classList.remove('hidden');
+                                } else {
+                                    document.getElementById('pix-code-container').classList.add('hidden');
+                                }
+                                
+                                // Mostrar/ocultar seção de parcelas
+                                toggleParcelasSection();
+                            });
+                        });
+                        
+                        // Configurar eventos das parcelas
+                        document.querySelectorAll('.parcela-option').forEach(option => {
+                            option.addEventListener('click', function() {
+                                document.querySelectorAll('.parcela-option').forEach(o => o.classList.remove('selected'));
+                                this.classList.add('selected');
+                                numeroParcelas = parseInt(this.getAttribute('data-parcelas'));
+                                atualizarInfoParcelas();
+                            });
+                        });
+                        
+                        // Selecionar primeira parcela por padrão
+                        document.querySelector('.parcela-option[data-parcelas="1"]').classList.add('selected');
+                        
+                        // Configurar eventos dos botões
+                        document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(id);
+                        document.getElementById('cancelar-pagamento').onclick = () => {
+                            modalPagamento.style.display = 'none';
+                            document.getElementById('modal-comanda').style.display = 'flex';
+                        };
+                        
+                        // Configurar evento do botão de desconto
+                        document.getElementById('aplicar-desconto').onclick = aplicarDesconto;
+                        
+                        // Fechar modal
+                        document.querySelector('#modal-pagamento .close-btn').onclick = () => {
+                            modalPagamento.style.display = 'none';
+                            document.getElementById('modal-comanda').style.display = 'flex';
+                        };
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar comanda:", error);
+                });
         }
 
-        async function adicionarItemComanda(index) {
+        function atualizarItensComandaModal(id) {
+            // Buscar comanda do Firebase
+            db.collection("comandas").doc(id).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const comanda = doc.data();
+                        const container = document.getElementById('itens-comanda-modal');
+                        const totalElement = document.getElementById('total-comanda-modal');
+                        
+                        container.innerHTML = '';
+                        
+                        if (comanda.itens.length === 0) {
+                            container.innerHTML = '<p>Nenhum item adicionado à comanda</p>';
+                            totalElement.textContent = 'Total: R$ 0,00';
+                            return;
+                        }
+                        
+                        let total = 0;
+                        
+                        comanda.itens.forEach((item, itemIndex) => {
+                            const itemTotal = item.preco * item.quantidade;
+                            total += itemTotal;
+                            
+                            const div = document.createElement('div');
+                            div.className = 'comanda-item';
+                            div.innerHTML = `
+                                <div>
+                                    <strong>${item.nome}</strong><br>
+                                    <small>R$ ${item.preco.toFixed(2)} x ${item.quantidade}</small>
+                                </div>
+                                <div>
+                                    <span>R$ ${itemTotal.toFixed(2)}</span>
+                                    <button class="btn btn-danger" onclick="removerItemComanda('${id}', ${itemIndex})">Remover</button>
+                                </div>
+                            `;
+                            container.appendChild(div);
+                        });
+                        
+                        totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar comanda:", error);
+                });
+        }
+
+        async function adicionarItemComanda(id) {
             const quantidade = parseInt(document.getElementById('quantidade').value);
             
             if (!produtoSelecionado) {
@@ -1849,340 +2009,399 @@
                 return;
             }
             
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            // Verificar se o item já existe na comanda
-            const itemExistente = comanda.itens.find(item => item.id === produtoSelecionado.id);
-            
-            if (itemExistente) {
-                itemExistente.quantidade += quantidade;
-            } else {
-                comanda.itens.push({
-                    id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
-                    preco: produtoSelecionado.preco,
-                    quantidade: quantidade
-                });
+            try {
+                // Buscar comanda atual
+                const doc = await db.collection("comandas").doc(id).get();
+                if (doc.exists) {
+                    const comanda = doc.data();
+                    
+                    // Verificar se o item já existe na comanda
+                    const itemExistente = comanda.itens.find(item => item.id === produtoSelecionado.id);
+                    
+                    if (itemExistente) {
+                        itemExistente.quantidade += quantidade;
+                    } else {
+                        comanda.itens.push({
+                            id: produtoSelecionado.id,
+                            nome: produtoSelecionado.nome,
+                            preco: produtoSelecionado.preco,
+                            quantidade: quantidade
+                        });
+                    }
+                    
+                    // Atualizar comanda no Firebase
+                    await db.collection("comandas").doc(id).update({
+                        itens: comanda.itens,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Atualizar interface
+                    atualizarItensComandaModal(id);
+                    
+                    // Resetar seleção
+                    produtoSelecionado = null;
+                    document.querySelectorAll('.product-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao adicionar item à comanda:", error);
+                alert('Erro ao adicionar item. Tente novamente.');
             }
-            
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Atualizar comanda no Firebase
-            await atualizarComandaFirebase(comanda.id, comanda.itens, comanda.status);
-            
-            atualizarItensComandaModal(index);
-            
-            // Resetar seleção
-            produtoSelecionado = null;
-            document.querySelectorAll('.product-item').forEach(item => {
-                item.classList.remove('selected');
-            });
         }
 
-        async function removerItemComanda(comandaIndex, itemIndex) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            comandas[comandaIndex].itens.splice(itemIndex, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Atualizar comanda no Firebase
-            await atualizarComandaFirebase(comandas[comandaIndex].id, comandas[comandaIndex].itens, comandas[comandaIndex].status);
-            
-            atualizarItensComandaModal(comandaIndex);
+        async function removerItemComanda(comandaId, itemIndex) {
+            try {
+                // Buscar comanda atual
+                const doc = await db.collection("comandas").doc(comandaId).get();
+                if (doc.exists) {
+                    const comanda = doc.data();
+                    
+                    // Remover item
+                    comanda.itens.splice(itemIndex, 1);
+                    
+                    // Atualizar comanda no Firebase
+                    await db.collection("comandas").doc(comandaId).update({
+                        itens: comanda.itens,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Atualizar interface
+                    atualizarItensComandaModal(comandaId);
+                }
+            } catch (error) {
+                console.error("Erro ao remover item da comanda:", error);
+                alert('Erro ao remover item. Tente novamente.');
+            }
         }
 
-        async function fecharComanda(index) {
+        async function fecharComanda(id) {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
                 return;
             }
             
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            
-            const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            
-            // Calcular total final (com desconto, se aplicado)
-            const totalFinal = totalComDesconto > 0 ? totalComDesconto : total;
-            
-            // Registrar venda
-            const venda = {
-                comandaId: comanda.id,
-                cliente: comanda.cliente,
-                itens: [...comanda.itens],
-                total: total,
-                desconto: valorDesconto,
-                percentualDesconto: percentualDesconto,
-                totalFinal: totalFinal,
-                formaPagamento: formaPagamento,
-                numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 1,
-                data: new Date().toISOString()
-            };
-            
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            vendas.push(venda);
-            localStorage.setItem('vendas', JSON.stringify(vendas));
-            
-            // Salvar venda no Firebase
-            await salvarVendaFirebase(venda);
-            
-            // Remover comanda
-            comandas.splice(index, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            
-            // Fechar modal
-            document.getElementById('modal-pagamento').style.display = 'none';
-            
-            let mensagem = `Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)}`;
-            if (percentualDesconto > 0) {
-                mensagem += `\nDesconto aplicado: ${percentualDesconto}% (-R$ ${valorDesconto.toFixed(2)})`;
-                mensagem += `\nTotal com desconto: R$ ${totalFinal.toFixed(2)}`;
+            try {
+                // Buscar comanda
+                const doc = await db.collection("comandas").doc(id).get();
+                if (doc.exists) {
+                    const comanda = doc.data();
+                    
+                    const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                    
+                    // Calcular total final (com desconto, se aplicado)
+                    const totalFinal = totalComDesconto > 0 ? totalComDesconto : total;
+                    
+                    // Registrar venda
+                    const venda = {
+                        comandaId: id,
+                        cliente: comanda.cliente,
+                        itens: [...comanda.itens],
+                        total: total,
+                        desconto: valorDesconto,
+                        totalFinal: totalFinal,
+                        formaPagamento: formaPagamento,
+                        numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 1,
+                        data: new Date().toISOString(),
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Salvar venda no Firebase
+                    await db.collection("vendas").add(venda);
+                    
+                    // Atualizar status da comanda para fechada
+                    await db.collection("comandas").doc(id).update({
+                        status: 'fechada',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Fechar modal
+                    document.getElementById('modal-pagamento').style.display = 'none';
+                    
+                    let mensagem = `Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)}`;
+                    if (valorDesconto > 0) {
+                        mensagem += `\nDesconto aplicado: -R$ ${valorDesconto.toFixed(2)}`;
+                        mensagem += `\nTotal com desconto: R$ ${totalFinal.toFixed(2)}`;
+                    }
+                    mensagem += `\nForma de pagamento: ${formaPagamento}`;
+                    
+                    // Adicionar informação de parcelas se for crédito
+                    if (formaPagamento === 'credito' && numeroParcelas > 1) {
+                        const valorParcela = totalFinal / numeroParcelas;
+                        mensagem += `\nParcelado em ${numeroParcelas}x de R$ ${valorParcela.toFixed(2)}`;
+                    }
+                    
+                    alert(mensagem);
+                    // O listener vai atualizar automaticamente as listas
+                }
+            } catch (error) {
+                console.error("Erro ao fechar comanda:", error);
+                alert('Erro ao fechar comanda. Tente novamente.');
             }
-            mensagem += `\nForma de pagamento: ${formaPagamento}`;
-            
-            // Adicionar informação de parcelas se for crédito
-            if (formaPagamento === 'credito' && numeroParcelas > 1) {
-                const valorParcela = totalFinal / numeroParcelas;
-                mensagem += `\nParcelado em ${numeroParcelas}x de R$ ${valorParcela.toFixed(2)}`;
-            }
-            
-            alert(mensagem);
-            carregarComandas();
-            atualizarDashboard();
         }
 
-        function cancelarComanda(index) {
+        function cancelarComanda(id) {
             if (confirm('Tem certeza que deseja cancelar esta comanda?')) {
-                const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-                comandas.splice(index, 1);
-                localStorage.setItem('comandas', JSON.stringify(comandas));
-                
-                // Fechar modal
-                document.getElementById('modal-comanda').style.display = 'none';
-                
-                carregarComandas();
-                atualizarDashboard();
+                // Atualizar status da comanda para cancelada
+                db.collection("comandas").doc(id).update({
+                    status: 'cancelada',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    // Fechar modal
+                    document.getElementById('modal-comanda').style.display = 'none';
+                    // O listener vai atualizar automaticamente as listas
+                })
+                .catch((error) => {
+                    console.error("Erro ao cancelar comanda:", error);
+                    alert('Erro ao cancelar comanda. Tente novamente.');
+                });
             }
         }
 
         // Função para carregar relatórios
-        function carregarRelatorios() {
+        function carregarRelatorios(vendas) {
+            if (!vendas) return;
+            
             const dataInicio = document.getElementById('data-inicio').value;
             const dataFim = document.getElementById('data-fim').value;
             
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            let vendasFiltradas = vendas;
             
             // Filtrar por data se especificado
             if (dataInicio) {
-                vendas = vendas.filter(venda => {
+                vendasFiltradas = vendasFiltradas.filter(venda => {
                     const vendaDate = new Date(venda.data).toISOString().split('T')[0];
                     return vendaDate >= dataInicio;
                 });
             }
             
             if (dataFim) {
-                vendas = vendas.filter(venda => {
+                vendasFiltradas = vendasFiltradas.filter(venda => {
                     const vendaDate = new Date(venda.data).toISOString().split('T')[0];
                     return vendaDate <= dataFim;
                 });
             }
             
-            const tabela = document.getElementById('relatorio-vendas');
-            tabela.innerHTML = '';
-            
-            if (vendas.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="9" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
-                return;
-            }
-            
-            // Ordenar vendas por data (mais recente primeiro)
-            vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
-            
-            vendas.forEach((venda, index) => {
-                const data = new Date(venda.data);
-                const dataFormatada = data.toLocaleDateString('pt-BR');
-                const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            // Configurar paginação para relatórios
+            setupPagination('relatorios', vendasFiltradas, paginationConfig.relatorios.itemsPerPage, (pageVendas) => {
+                const tabela = document.getElementById('relatorio-vendas');
+                tabela.innerHTML = '';
                 
-                // Formatar forma de pagamento
-                let pagamentoFormatado = '';
-                let parcelasInfo = '';
-                
-                switch(venda.formaPagamento) {
-                    case 'dinheiro':
-                        pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
-                        break;
-                    case 'pix':
-                        pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
-                        break;
-                    case 'debito':
-                        pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
-                        break;
-                    case 'credito':
-                        pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
-                        if (venda.numeroParcelas > 1) {
-                            parcelasInfo = `${venda.numeroParcelas}x`;
-                        }
-                        break;
-                    default:
-                        pagamentoFormatado = '<span class="badge">N/A</span>';
+                if (pageVendas.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="9" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
+                    return;
                 }
                 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${dataFormatada} ${horaFormatada}</td>
-                    <td>#${venda.comandaId}</td>
-                    <td>${venda.cliente || 'Cliente não informado'}</td>
-                    <td>R$ ${venda.total.toFixed(2)}</td>
-                    <td>${venda.desconto > 0 ? `R$ ${venda.desconto.toFixed(2)} (${venda.percentualDesconto}%)` : 'R$ 0,00'}</td>
-                    <td>R$ ${venda.totalFinal.toFixed(2)}</td>
-                    <td>${pagamentoFormatado}</td>
-                    <td>${parcelasInfo}</td>
-                    <td>
-                        <button class="btn btn-primary" onclick="verDetalhesVenda(${index})">Ver Detalhes</button>
-                    </td>
-                `;
-                tabela.appendChild(tr);
+                // Ordenar vendas por data (mais recente primeiro)
+                pageVendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+                
+                pageVendas.forEach((venda) => {
+                    const data = new Date(venda.data);
+                    const dataFormatada = data.toLocaleDateString('pt-BR');
+                    const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    
+                    // Formatar forma de pagamento
+                    let pagamentoFormatado = '';
+                    let parcelasInfo = '';
+                    
+                    switch(venda.formaPagamento) {
+                        case 'dinheiro':
+                            pagamentoFormatado = '<span class="badge badge-success">Dinheiro</span>';
+                            break;
+                        case 'pix':
+                            pagamentoFormatado = '<span class="badge badge-info">PIX</span>';
+                            break;
+                        case 'debito':
+                            pagamentoFormatado = '<span class="badge badge-warning">Débito</span>';
+                            break;
+                        case 'credito':
+                            pagamentoFormatado = '<span class="badge badge-danger">Crédito</span>';
+                            if (venda.numeroParcelas > 1) {
+                                parcelasInfo = `${venda.numeroParcelas}x`;
+                            }
+                            break;
+                        default:
+                            pagamentoFormatado = '<span class="badge">N/A</span>';
+                    }
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dataFormatada} ${horaFormatada}</td>
+                        <td>#${venda.comandaId}</td>
+                        <td>${venda.cliente || 'Cliente não informado'}</td>
+                        <td>R$ ${venda.total.toFixed(2)}</td>
+                        <td>${venda.desconto > 0 ? `R$ ${venda.desconto.toFixed(2)}` : 'R$ 0,00'}</td>
+                        <td>R$ ${venda.totalFinal.toFixed(2)}</td>
+                        <td>${pagamentoFormatado}</td>
+                        <td>${parcelasInfo}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="verDetalhesVenda('${venda.id}')">Ver Detalhes</button>
+                        </td>
+                    `;
+                    tabela.appendChild(tr);
+                });
             });
         }
 
-        function verDetalhesVenda(index) {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const venda = vendas[index];
-            
-            // Formatar forma de pagamento
-            let pagamentoTexto = '';
-            let parcelasInfo = '';
-            
-            switch(venda.formaPagamento) {
-                case 'dinheiro':
-                    pagamentoTexto = 'Dinheiro';
-                    break;
-                case 'pix':
-                    pagamentoTexto = 'PIX';
-                    break;
-                case 'debito':
-                    pagamentoTexto = 'Cartão de Débito';
-                    break;
-                case 'credito':
-                    pagamentoTexto = 'Cartão de Crédito';
-                    if (venda.numeroParcelas > 1) {
-                        const valorParcela = venda.totalFinal / venda.numeroParcelas;
-                        parcelasInfo = `<p><strong>Parcelado em:</strong> ${venda.numeroParcelas}x de R$ ${valorParcela.toFixed(2)}</p>`;
+        async function verDetalhesVenda(id) {
+            try {
+                const doc = await db.collection("vendas").doc(id).get();
+                if (doc.exists) {
+                    const venda = doc.data();
+                    
+                    // Formatar forma de pagamento
+                    let pagamentoTexto = '';
+                    let parcelasInfo = '';
+                    
+                    switch(venda.formaPagamento) {
+                        case 'dinheiro':
+                            pagamentoTexto = 'Dinheiro';
+                            break;
+                        case 'pix':
+                            pagamentoTexto = 'PIX';
+                            break;
+                        case 'debito':
+                            pagamentoTexto = 'Cartão de Débito';
+                            break;
+                        case 'credito':
+                            pagamentoTexto = 'Cartão de Crédito';
+                            if (venda.numeroParcelas > 1) {
+                                const valorParcela = venda.totalFinal / venda.numeroParcelas;
+                                parcelasInfo = `<p><strong>Parcelado em:</strong> ${venda.numeroParcelas}x de R$ ${valorParcela.toFixed(2)}</p>`;
+                            }
+                            break;
+                        default:
+                            pagamentoTexto = 'Não informado';
                     }
-                    break;
-                default:
-                    pagamentoTexto = 'Não informado';
+                    
+                    const modal = document.getElementById('modal-venda');
+                    const container = document.getElementById('detalhes-venda');
+                    
+                    let descontoInfo = '';
+                    if (venda.desconto > 0) {
+                        descontoInfo = `
+                            <p><strong>Desconto Aplicado:</strong> R$ ${venda.desconto.toFixed(2)}</p>
+                        `;
+                    }
+                    
+                    container.innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+                            <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
+                            <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
+                            <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                            ${parcelasInfo}
+                            ${descontoInfo}
+                        </div>
+                        
+                        <h4>Itens:</h4>
+                        <ul>
+                            ${venda.itens.map(item => `
+                                <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
+                            `).join('')}
+                        </ul>
+                        <p><strong>Total Bruto:</strong> R$ ${venda.total.toFixed(2)}</p>
+                        ${venda.desconto > 0 ? `<p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>` : ''}
+                        <p><strong>Total Final:</strong> R$ ${venda.totalFinal.toFixed(2)}</p>
+                    `;
+                    
+                    modal.style.display = 'flex';
+                    
+                    // Fechar modal
+                    document.querySelector('#modal-venda .close-btn').onclick = () => {
+                        modal.style.display = 'none';
+                    };
+                }
+            } catch (error) {
+                console.error("Erro ao buscar venda:", error);
+                alert('Erro ao carregar detalhes da venda.');
             }
-            
-            const modal = document.getElementById('modal-venda');
-            const container = document.getElementById('detalhes-venda');
-            
-            let descontoInfo = '';
-            if (venda.desconto > 0) {
-                descontoInfo = `
-                    <p><strong>Desconto Aplicado:</strong> ${venda.percentualDesconto}% (R$ ${venda.desconto.toFixed(2)})</p>
-                `;
-            }
-            
-            container.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                    <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
-                    <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
-                    <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
-                    ${parcelasInfo}
-                    ${descontoInfo}
-                </div>
-                
-                <h4>Itens:</h4>
-                <ul>
-                    ${venda.itens.map(item => `
-                        <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
-                    `).join('')}
-                </ul>
-                <p><strong>Total Bruto:</strong> R$ ${venda.total.toFixed(2)}</p>
-                ${venda.desconto > 0 ? `<p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>` : ''}
-                <p><strong>Total Final:</strong> R$ ${venda.totalFinal.toFixed(2)}</p>
-            `;
-            
-            modal.style.display = 'flex';
-            
-            // Fechar modal
-            document.querySelector('#modal-venda .close-btn').onclick = () => {
-                modal.style.display = 'none';
-            };
         }
 
         function exportarRelatorio() {
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            const dataInicio = document.getElementById('data-inicio').value;
-            const dataFim = document.getElementById('data-fim').value;
-            
-            // Filtrar por data se especificado
-            if (dataInicio) {
-                vendas = vendas.filter(venda => {
-                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
-                    return vendaDate >= dataInicio;
-                });
-            }
-            
-            if (dataFim) {
-                vendas = vendas.filter(venda => {
-                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
-                    return vendaDate <= dataFim;
-                });
-            }
-            
-            if (vendas.length === 0) {
-                alert('Nenhuma venda para exportar.');
-                return;
-            }
-            
-            // Criar CSV
-            let csv = 'Data,Comanda,Cliente,Total,Desconto,Total Final,Forma de Pagamento,Parcelas\n';
-            
-            vendas.forEach(venda => {
-                const data = new Date(venda.data);
-                const dataFormatada = data.toLocaleDateString('pt-BR');
-                
-                // Formatar forma de pagamento
-                let pagamentoTexto = '';
-                let parcelasInfo = '';
-                
-                switch(venda.formaPagamento) {
-                    case 'dinheiro':
-                        pagamentoTexto = 'Dinheiro';
-                        break;
-                    case 'pix':
-                        pagamentoTexto = 'PIX';
-                        break;
-                    case 'debito':
-                        pagamentoTexto = 'Cartão de Débito';
-                        break;
-                    case 'credito':
-                        pagamentoTexto = 'Cartão de Crédito';
-                        if (venda.numeroParcelas > 1) {
-                            parcelasInfo = `${venda.numeroParcelas}x`;
+            // Buscar todas as vendas do Firebase
+            db.collection("vendas")
+                .get()
+                .then((snapshot) => {
+                    const vendas = [];
+                    snapshot.forEach(doc => {
+                        vendas.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    const dataInicio = document.getElementById('data-inicio').value;
+                    const dataFim = document.getElementById('data-fim').value;
+                    
+                    // Filtrar por data se especificado
+                    let vendasFiltradas = vendas;
+                    if (dataInicio) {
+                        vendasFiltradas = vendasFiltradas.filter(venda => {
+                            const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                            return vendaDate >= dataInicio;
+                        });
+                    }
+                    
+                    if (dataFim) {
+                        vendasFiltradas = vendasFiltradas.filter(venda => {
+                            const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                            return vendaDate <= dataFim;
+                        });
+                    }
+                    
+                    if (vendasFiltradas.length === 0) {
+                        alert('Nenhuma venda para exportar.');
+                        return;
+                    }
+                    
+                    // Criar CSV
+                    let csv = 'Data,Comanda,Cliente,Total,Desconto,Total Final,Forma de Pagamento,Parcelas\n';
+                    
+                    vendasFiltradas.forEach(venda => {
+                        const data = new Date(venda.data);
+                        const dataFormatada = data.toLocaleDateString('pt-BR');
+                        
+                        // Formatar forma de pagamento
+                        let pagamentoTexto = '';
+                        let parcelasInfo = '';
+                        
+                        switch(venda.formaPagamento) {
+                            case 'dinheiro':
+                                pagamentoTexto = 'Dinheiro';
+                                break;
+                            case 'pix':
+                                pagamentoTexto = 'PIX';
+                                break;
+                            case 'debito':
+                                pagamentoTexto = 'Cartão de Débito';
+                                break;
+                            case 'credito':
+                                pagamentoTexto = 'Cartão de Crédito';
+                                if (venda.numeroParcelas > 1) {
+                                    parcelasInfo = `${venda.numeroParcelas}x`;
+                                }
+                                break;
+                            default:
+                                pagamentoTexto = 'Não informado';
                         }
-                        break;
-                    default:
-                        pagamentoTexto = 'Não informado';
-                }
-                
-                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${venda.desconto.toFixed(2)}","${venda.totalFinal.toFixed(2)}","${pagamentoTexto}","${parcelasInfo}"\n`;
-            });
-            
-            // Criar e baixar arquivo
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                        
+                        csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${venda.desconto.toFixed(2)}","${venda.totalFinal.toFixed(2)}","${pagamentoTexto}","${parcelasInfo}"\n`;
+                    });
+                    
+                    // Criar e baixar arquivo
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch((error) => {
+                    console.error("Erro ao exportar relatório:", error);
+                    alert('Erro ao exportar relatório.');
+                });
         }
 
         // Funções para dashboard
@@ -2198,122 +2417,148 @@
         }
 
         function atualizarDashboard() {
-            // Estatísticas gerais
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            // Aplicar filtros nas vendas
-            if (filtrosDashboard.dataInicio) {
-                vendas = vendas.filter(venda => {
-                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
-                    return vendaDate >= filtrosDashboard.dataInicio;
+            // Buscar dados do Firebase para o dashboard
+            Promise.all([
+                db.collection("produtos").get(),
+                db.collection("comandas").where("status", "==", "ativa").get(),
+                db.collection("vendas").get()
+            ])
+            .then(([produtosSnapshot, comandasSnapshot, vendasSnapshot]) => {
+                const produtos = [];
+                produtosSnapshot.forEach(doc => {
+                    produtos.push({ id: doc.id, ...doc.data() });
                 });
-            }
-            
-            if (filtrosDashboard.dataFim) {
-                vendas = vendas.filter(venda => {
-                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
-                    return vendaDate <= filtrosDashboard.dataFim;
+                
+                const comandas = [];
+                comandasSnapshot.forEach(doc => {
+                    comandas.push({ id: doc.id, ...doc.data() });
                 });
-            }
-            
-            if (filtrosDashboard.categoria) {
-                vendas = vendas.filter(venda => 
-                    venda.itens.some(item => {
-                        const produto = produtos.find(p => p.id === item.id);
-                        return produto && produto.categoria === filtrosDashboard.categoria;
-                    })
-                );
-            }
-            
-            if (filtrosDashboard.produto) {
-                vendas = vendas.filter(venda => 
-                    venda.itens.some(item => item.id.toString() === filtrosDashboard.produto)
-                );
-            }
-            
-            // Total em vendas
-            const totalVendas = vendas.reduce((sum, venda) => sum + venda.totalFinal, 0);
-            document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
-            
-            // Comandas ativas
-            document.getElementById('total-comandas').textContent = comandas.length;
-            
-            // Produtos cadastrados
-            document.getElementById('total-produtos').textContent = produtos.length;
-            
-            // Vendas hoje
-            const hoje = new Date().toISOString().split('T')[0];
-            const vendasHoje = vendas.filter(venda => {
-                const vendaDate = new Date(venda.data).toISOString().split('T')[0];
-                return vendaDate === hoje;
-            }).length;
-            document.getElementById('vendas-hoje').textContent = vendasHoje;
-            
-            // Comandas ativas no dashboard
-            const comandasDashboard = document.getElementById('comandas-lista-dashboard');
-            comandasDashboard.innerHTML = '';
-            
-            if (comandas.length === 0) {
-                comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
-            } else {
-                comandas.forEach(comanda => {
-                    const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-                    
-                    const div = document.createElement('div');
-                    div.className = 'comanda-item';
-                    div.innerHTML = `
-                        <div>
-                            <strong>Comanda #${comanda.id}</strong><br>
-                            <small>${comanda.cliente || 'Cliente não informado'}</small>
-                        </div>
-                        <div>R$ ${total.toFixed(2)}</div>
+                
+                let vendas = [];
+                vendasSnapshot.forEach(doc => {
+                    vendas.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Aplicar filtros nas vendas
+                if (filtrosDashboard.dataInicio) {
+                    vendas = vendas.filter(venda => {
+                        const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                        return vendaDate >= filtrosDashboard.dataInicio;
+                    });
+                }
+                
+                if (filtrosDashboard.dataFim) {
+                    vendas = vendas.filter(venda => {
+                        const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                        return vendaDate <= filtrosDashboard.dataFim;
+                    });
+                }
+                
+                if (filtrosDashboard.categoria) {
+                    vendas = vendas.filter(venda => 
+                        venda.itens.some(item => {
+                            const produto = produtos.find(p => p.id === item.id);
+                            return produto && produto.categoria === filtrosDashboard.categoria;
+                        })
+                    );
+                }
+                
+                if (filtrosDashboard.produto) {
+                    vendas = vendas.filter(venda => 
+                        venda.itens.some(item => item.id === filtrosDashboard.produto)
+                    );
+                }
+                
+                // Total em vendas
+                const totalVendas = vendas.reduce((sum, venda) => sum + venda.totalFinal, 0);
+                document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
+                
+                // Comandas ativas
+                document.getElementById('total-comandas').textContent = comandas.length;
+                
+                // Produtos cadastrados
+                document.getElementById('total-produtos').textContent = produtos.length;
+                
+                // Vendas hoje
+                const hoje = new Date().toISOString().split('T')[0];
+                const vendasHoje = vendas.filter(venda => {
+                    const vendaDate = new Date(venda.data).toISOString().split('T')[0];
+                    return vendaDate === hoje;
+                }).length;
+                document.getElementById('vendas-hoje').textContent = vendasHoje;
+                
+                // Comandas ativas no dashboard
+                const comandasDashboard = document.getElementById('comandas-lista-dashboard');
+                comandasDashboard.innerHTML = '';
+                
+                if (comandas.length === 0) {
+                    comandasDashboard.innerHTML = '<p>Nenhuma comanda ativa</p>';
+                } else {
+                    // Configurar paginação para comandas no dashboard
+                    setupPagination('dashboard', comandas, paginationConfig.dashboard.itemsPerPage, (pageComandas) => {
+                        comandasDashboard.innerHTML = '';
+                        
+                        pageComandas.forEach(comanda => {
+                            const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+                            
+                            const div = document.createElement('div');
+                            div.className = 'comanda-item';
+                            div.innerHTML = `
+                                <div>
+                                    <strong>Comanda #${comanda.id}</strong><br>
+                                    <small>${comanda.cliente || 'Cliente não informado'}</small>
+                                </div>
+                                <div>R$ ${total.toFixed(2)}</div>
+                            `;
+                            comandasDashboard.appendChild(div);
+                        });
+                    });
+                }
+                
+                // Produtos mais vendidos
+                const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
+                produtosMaisVendidos.innerHTML = '';
+                
+                if (vendas.length === 0) {
+                    produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
+                    return;
+                }
+                
+                // Agrupar produtos vendidos
+                const produtosVendidos = {};
+                
+                vendas.forEach(venda => {
+                    venda.itens.forEach(item => {
+                        if (!produtosVendidos[item.id]) {
+                            produtosVendidos[item.id] = {
+                                nome: item.nome,
+                                quantidade: 0,
+                                total: 0
+                            };
+                        }
+                        
+                        produtosVendidos[item.id].quantidade += item.quantidade;
+                        produtosVendidos[item.id].total += item.preco * item.quantidade;
+                    });
+                });
+                
+                // Ordenar por quantidade (mais vendidos primeiro)
+                const produtosOrdenados = Object.values(produtosVendidos)
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5); // Top 5
+                
+                produtosOrdenados.forEach(produto => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${produto.nome}</td>
+                        <td>${produto.quantidade}</td>
+                        <td>R$ ${produto.total.toFixed(2)}</td>
                     `;
-                    comandasDashboard.appendChild(div);
+                    produtosMaisVendidos.appendChild(tr);
                 });
-            }
-            
-            // Produtos mais vendidos
-            const produtosMaisVendidos = document.getElementById('produtos-mais-vendidos');
-            produtosMaisVendidos.innerHTML = '';
-            
-            if (vendas.length === 0) {
-                produtosMaisVendidos.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma venda registrada</td></tr>';
-                return;
-            }
-            
-            // Agrupar produtos vendidos
-            const produtosVendidos = {};
-            
-            vendas.forEach(venda => {
-                venda.itens.forEach(item => {
-                    if (!produtosVendidos[item.id]) {
-                        produtosVendidos[item.id] = {
-                            nome: item.nome,
-                            quantidade: 0,
-                            total: 0
-                        };
-                    }
-                    
-                    produtosVendidos[item.id].quantidade += item.quantidade;
-                    produtosVendidos[item.id].total += item.preco * item.quantidade;
-                });
-            });
-            
-            // Ordenar por quantidade (mais vendidos primeiro)
-            const produtosOrdenados = Object.values(produtosVendidos)
-                .sort((a, b) => b.quantidade - a.quantidade)
-                .slice(0, 5); // Top 5
-            
-            produtosOrdenados.forEach(produto => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${produto.nome}</td>
-                    <td>${produto.quantidade}</td>
-                    <td>R$ ${produto.total.toFixed(2)}</td>
-                `;
-                produtosMaisVendidos.appendChild(tr);
+            })
+            .catch((error) => {
+                console.error("Erro ao atualizar dashboard:", error);
             });
         }
 
@@ -2334,18 +2579,23 @@
             document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
             document.getElementById('cancelar-edicao').addEventListener('click', cancelarEdicao);
             document.getElementById('criar-comanda').addEventListener('click', criarComanda);
-            document.getElementById('filtrar-relatorio').addEventListener('click', carregarRelatorios);
+            document.getElementById('filtrar-relatorio').addEventListener('click', () => {
+                // O listener vai atualizar automaticamente os relatórios
+                document.getElementById('relatorios').classList.add('active');
+            });
             document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
             document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
             
-            // Configurar navegação
+            // Configurar navegação CORRIGIDA
             setupNavigation();
             
-            // Carregar dados iniciais
-            carregarProdutos();
-            carregarFiltrosProdutos();
-            carregarComandas();
-            carregarRelatorios();
+            // Configurar listeners do Firebase
+            setupProdutosListener();
+            setupComandasListener();
+            setupVendasListener();
+            setupConnectionListener();
+            
+            // Atualizar dashboard inicial
             atualizarDashboard();
             
             // Configurar data padrão para relatórios (últimos 7 dias)
