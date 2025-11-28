@@ -564,49 +564,6 @@
             color: #666;
         }
         
-        /* Novos estilos para exibição de itens */
-        .itens-comanda {
-            max-width: 300px;
-        }
-        
-        .item-linha {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .item-linha:last-child {
-            border-bottom: none;
-        }
-        
-        .item-nome {
-            flex: 2;
-            font-weight: bold;
-        }
-        
-        .item-quantidade {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .item-preco {
-            flex: 1;
-            text-align: right;
-        }
-        
-        .item-total {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .resumo-itens {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-        
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -1010,7 +967,6 @@
                             <th>Cliente</th>
                             <th>Total</th>
                             <th>Pagamento</th>
-                            <th>Itens Consumidos</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -1786,7 +1742,7 @@
             }
         }
 
-        // Funções para relatórios - ATUALIZADAS
+        // Funções para relatórios
         function carregarRelatorios() {
             const dataInicio = document.getElementById('data-inicio').value;
             const dataFim = document.getElementById('data-fim').value;
@@ -1809,7 +1765,7 @@
             tabela.innerHTML = '';
             
             if (vendas.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
+                tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
                 return;
             }
             
@@ -1836,18 +1792,6 @@
                         pagamentoFormatado = '<span class="badge">N/A</span>';
                 }
                 
-                // Calcular totais por item
-                const itensFormatados = venda.itens.map(item => {
-                    const totalItem = item.preco * item.quantidade;
-                    return `
-                        <div class="item-linha">
-                            <span class="item-nome">${item.nome}</span>
-                            <span class="item-quantidade">${item.quantidade}x</span>
-                            <span class="item-preco">R$ ${totalItem.toFixed(2)}</span>
-                        </div>
-                    `;
-                }).join('');
-                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${dataFormatada}</td>
@@ -1855,11 +1799,6 @@
                     <td>${venda.cliente || 'Cliente não informado'}</td>
                     <td>R$ ${venda.total.toFixed(2)}</td>
                     <td>${pagamentoFormatado}</td>
-                    <td class="itens-comanda">
-                        <div class="resumo-itens">
-                            ${itensFormatados}
-                        </div>
-                    </td>
                     <td>
                         <button class="btn btn-primary" onclick="verDetalhesVenda(${index})">Ver Detalhes</button>
                     </td>
@@ -1891,46 +1830,21 @@
                     pagamentoTexto = 'Não informado';
             }
             
-            // Formatar itens para exibição detalhada
-            const itensDetalhados = venda.itens.map(item => {
-                const totalItem = item.preco * item.quantidade;
-                return `
-                    <div class="item-linha">
-                        <span class="item-nome">${item.nome}</span>
-                        <span class="item-quantidade">${item.quantidade}x</span>
-                        <span class="item-preco">R$ ${item.preco.toFixed(2)}</span>
-                        <span class="item-total">R$ ${totalItem.toFixed(2)}</span>
-                    </div>
-                `;
-            }).join('');
-            
             const modal = document.getElementById('modal-venda');
             const container = document.getElementById('detalhes-venda');
             
             container.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                    <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
-                    <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
-                    <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
-                </div>
-                
-                <h4>Itens Consumidos:</h4>
-                <div class="resumo-itens" style="max-height: 300px; overflow-y: auto;">
-                    <div class="item-linha" style="font-weight: bold; border-bottom: 2px solid #ccc;">
-                        <span class="item-nome">Produto</span>
-                        <span class="item-quantidade">Qtd</span>
-                        <span class="item-preco">Preço Unit.</span>
-                        <span class="item-total">Total</span>
-                    </div>
-                    ${itensDetalhados}
-                    <div class="item-linha" style="font-weight: bold; border-top: 2px solid #ccc; margin-top: 10px;">
-                        <span class="item-nome">TOTAL GERAL</span>
-                        <span class="item-quantidade"></span>
-                        <span class="item-preco"></span>
-                        <span class="item-total">R$ ${venda.total.toFixed(2)}</span>
-                    </div>
-                </div>
+                <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+                <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
+                <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
+                <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                <h4>Itens:</h4>
+                <ul>
+                    ${venda.itens.map(item => `
+                        <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
+                    `).join('')}
+                </ul>
+                <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
             `;
             
             modal.style.display = 'flex';
@@ -1964,8 +1878,8 @@
                 return;
             }
             
-            // Criar CSV com colunas para cada item
-            let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento,Itens (Quantidade x Nome - Preço Unitário - Total)\n';
+            // Criar CSV
+            let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
             
             vendas.forEach(venda => {
                 const data = new Date(venda.data);
@@ -1990,13 +1904,7 @@
                         pagamentoTexto = 'Não informado';
                 }
                 
-                // Formatar itens para CSV
-                const itensTexto = venda.itens.map(item => {
-                    const totalItem = item.preco * item.quantidade;
-                    return `${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} - R$ ${totalItem.toFixed(2)}`;
-                }).join('; ');
-                
-                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}","${itensTexto}"\n`;
+                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
             });
             
             // Criar e baixar arquivo
