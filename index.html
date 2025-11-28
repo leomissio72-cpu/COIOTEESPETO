@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Restaurante</title>
+    <title>Sistema de Gestão - Restaurante Coiote BBQ</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
     
     <style>
         :root {
@@ -1097,9 +1102,22 @@
     </div>
 
     <script>
-        // URL do Google Apps Script
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEyrCgdjHIHSa_BB11kFIJtIXSD9gr-9HIDNeT7SUJfkychVvcAVOgqeEZq4_hlV06/exec';
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5NWbiiPIoc4N9qUizsAkX-S_jbsWUhfY",
+            authDomain: "espeto-a4f94.firebaseapp.com",
+            projectId: "espeto-a4f94",
+            storageBucket: "espeto-a4f94.firebasestorage.app",
+            messagingSenderId: "1021397176394",
+            appId: "1:1021397176394:web:9b65858006f96bcf4956b3",
+            measurementId: "G-56HE56LKJ5"
+        };
 
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const db = firebase.firestore();
+        
         // Código PIX do Coiote BBQ
         const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
 
@@ -1110,6 +1128,29 @@
 
         // Variáveis para parcelamento
         let numeroParcelas = 1;
+        let formaPagamento = null;
+        
+        // Variáveis globais
+        let comandaAtual = null;
+        let produtoSelecionado = null;
+        let categoriaAtual = '';
+        let filtrosDashboard = {
+            produto: '',
+            categoria: '',
+            dataInicio: '',
+            dataFim: ''
+        };
+        let produtoEmEdicao = null;
+
+        // Categorias disponíveis
+        const categorias = [
+            "Espeto",
+            "Copos", 
+            "Bebidas",
+            "Facas",
+            "Itens para Churrasco",
+            "Espeto Congelado"
+        ];
 
         // Função para copiar código PIX
         function copiarCodigoPix() {
@@ -1192,45 +1233,33 @@
             `;
         }
 
-        // Funções de integração com Google Sheets
-        async function salvarProdutoGoogle(produto) {
+        // Funções de integração com Firebase
+        async function salvarProdutoFirebase(produto) {
             const syncStatus = document.getElementById('sync-produto-status');
             syncStatus.textContent = 'Enviando...';
             syncStatus.className = 'sync-status sync-loading';
             syncStatus.classList.remove('hidden');
 
             try {
-                const formData = new FormData();
-                formData.append('action', 'cadastrarProduto');
-                formData.append('nome', produto.nome);
-                formData.append('categoria', produto.categoria);
-                formData.append('preco', produto.preco);
-                formData.append('descricao', produto.descricao || '');
-                formData.append('id', produto.id);
-
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                await db.collection("produtos").doc(produto.id.toString()).set({
+                    nome: produto.nome,
+                    categoria: produto.categoria,
+                    preco: produto.preco,
+                    descricao: produto.descricao || '',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                const result = await response.json();
-                
-                if (result.sucesso) {
-                    syncStatus.textContent = '✓ Sincronizado';
-                    syncStatus.className = 'sync-status sync-success';
-                } else {
-                    syncStatus.textContent = '✗ Erro';
-                    syncStatus.className = 'sync-status sync-error';
-                }
+                syncStatus.textContent = '✓ Sincronizado';
+                syncStatus.className = 'sync-status sync-success';
                 
                 setTimeout(() => {
                     syncStatus.classList.add('hidden');
                 }, 3000);
                 
-                return result;
+                return { sucesso: true };
             } catch (error) {
-                console.error('Erro ao salvar produto no Google Sheets:', error);
-                syncStatus.textContent = '✗ Erro de rede';
+                console.error('Erro ao salvar produto no Firebase:', error);
+                syncStatus.textContent = '✗ Erro';
                 syncStatus.className = 'sync-status sync-error';
                 setTimeout(() => {
                     syncStatus.classList.add('hidden');
@@ -1239,44 +1268,32 @@
             }
         }
 
-        async function salvarComandaGoogle(comanda) {
+        async function salvarComandaFirebase(comanda) {
             const syncStatus = document.getElementById('sync-comanda-status');
             syncStatus.textContent = 'Enviando...';
             syncStatus.className = 'sync-status sync-loading';
             syncStatus.classList.remove('hidden');
 
             try {
-                const formData = new FormData();
-                formData.append('action', 'criarComanda');
-                formData.append('id', comanda.id);
-                formData.append('cliente', comanda.cliente);
-                formData.append('dataAbertura', comanda.dataAbertura);
-                formData.append('status', comanda.status);
-                formData.append('itens', JSON.stringify(comanda.itens));
-
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                await db.collection("comandas").doc(comanda.id.toString()).set({
+                    cliente: comanda.cliente,
+                    dataAbertura: comanda.dataAbertura,
+                    status: comanda.status,
+                    itens: comanda.itens,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                const result = await response.json();
-                
-                if (result.sucesso) {
-                    syncStatus.textContent = '✓ Sincronizado';
-                    syncStatus.className = 'sync-status sync-success';
-                } else {
-                    syncStatus.textContent = '✗ Erro';
-                    syncStatus.className = 'sync-status sync-error';
-                }
+                syncStatus.textContent = '✓ Sincronizado';
+                syncStatus.className = 'sync-status sync-success';
                 
                 setTimeout(() => {
                     syncStatus.classList.add('hidden');
                 }, 3000);
                 
-                return result;
+                return { sucesso: true };
             } catch (error) {
-                console.error('Erro ao salvar comanda no Google Sheets:', error);
-                syncStatus.textContent = '✗ Erro de rede';
+                console.error('Erro ao salvar comanda no Firebase:', error);
+                syncStatus.textContent = '✗ Erro';
                 syncStatus.className = 'sync-status sync-error';
                 setTimeout(() => {
                     syncStatus.classList.add('hidden');
@@ -1285,52 +1302,42 @@
             }
         }
 
-        async function salvarVendaGoogle(venda) {
+        async function salvarVendaFirebase(venda) {
             try {
-                const formData = new FormData();
-                formData.append('action', 'registrarVenda');
-                formData.append('comandaId', venda.comandaId);
-                formData.append('cliente', venda.cliente);
-                formData.append('total', venda.total);
-                formData.append('desconto', venda.desconto || 0);
-                formData.append('totalFinal', venda.totalFinal);
-                formData.append('formaPagamento', venda.formaPagamento);
-                formData.append('numeroParcelas', venda.numeroParcelas || 1);
-                formData.append('data', venda.data);
-                formData.append('itens', JSON.stringify(venda.itens));
-
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                await db.collection("vendas").doc(venda.comandaId.toString()).set({
+                    comandaId: venda.comandaId,
+                    cliente: venda.cliente,
+                    total: venda.total,
+                    desconto: venda.desconto || 0,
+                    percentualDesconto: venda.percentualDesconto || 0,
+                    totalFinal: venda.totalFinal,
+                    formaPagamento: venda.formaPagamento,
+                    numeroParcelas: venda.numeroParcelas || 1,
+                    data: venda.data,
+                    itens: venda.itens,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                const result = await response.json();
-                console.log('Venda salva no Google Sheets:', result);
-                return result;
+                console.log('Venda salva no Firebase');
+                return { sucesso: true };
             } catch (error) {
-                console.error('Erro ao salvar venda no Google Sheets:', error);
+                console.error('Erro ao salvar venda no Firebase:', error);
                 return { sucesso: false, erro: error.message };
             }
         }
 
-        async function atualizarComandaGoogle(comandaId, itens, status) {
+        async function atualizarComandaFirebase(comandaId, itens, status) {
             try {
-                const formData = new FormData();
-                formData.append('action', 'atualizarComanda');
-                formData.append('id', comandaId);
-                formData.append('itens', JSON.stringify(itens));
-                formData.append('status', status);
-
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                await db.collection("comandas").doc(comandaId.toString()).update({
+                    itens: itens,
+                    status: status,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                const result = await response.json();
-                console.log('Comanda atualizada no Google Sheets:', result);
-                return result;
+                console.log('Comanda atualizada no Firebase');
+                return { sucesso: true };
             } catch (error) {
-                console.error('Erro ao atualizar comanda no Google Sheets:', error);
+                console.error('Erro ao atualizar comanda no Firebase:', error);
                 return { sucesso: false, erro: error.message };
             }
         }
@@ -1372,29 +1379,6 @@
                 document.getElementById('navMenu').classList.toggle('show');
             });
         }
-
-        // Variáveis globais
-        let comandaAtual = null;
-        let formaPagamento = null;
-        let produtoSelecionado = null;
-        let categoriaAtual = '';
-        let filtrosDashboard = {
-            produto: '',
-            categoria: '',
-            dataInicio: '',
-            dataFim: ''
-        };
-        let produtoEmEdicao = null;
-
-        // Categorias disponíveis
-        const categorias = [
-            "Espeto",
-            "Copos", 
-            "Bebidas",
-            "Facas",
-            "Itens para Churrasco",
-            "Espeto Congelado"
-        ];
 
         // Funções para gerenciar produtos
         function carregarProdutos() {
@@ -1481,8 +1465,8 @@
                 produtos.push(novoProduto);
                 mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
                 
-                // Salvar no Google Sheets
-                await salvarProdutoGoogle(novoProduto);
+                // Salvar no Firebase
+                await salvarProdutoFirebase(novoProduto);
             }
             
             localStorage.setItem('produtos', JSON.stringify(produtos));
@@ -1597,8 +1581,8 @@
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
             
-            // Salvar no Google Sheets
-            await salvarComandaGoogle(novaComanda);
+            // Salvar no Firebase
+            await salvarComandaFirebase(novaComanda);
             
             // Limpar formulário
             document.getElementById('cliente').value = '';
@@ -1884,8 +1868,8 @@
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
             
-            // Atualizar comanda no Google Sheets
-            await atualizarComandaGoogle(comanda.id, comanda.itens, comanda.status);
+            // Atualizar comanda no Firebase
+            await atualizarComandaFirebase(comanda.id, comanda.itens, comanda.status);
             
             atualizarItensComandaModal(index);
             
@@ -1901,8 +1885,8 @@
             comandas[comandaIndex].itens.splice(itemIndex, 1);
             localStorage.setItem('comandas', JSON.stringify(comandas));
             
-            // Atualizar comanda no Google Sheets
-            await atualizarComandaGoogle(comandas[comandaIndex].id, comandas[comandaIndex].itens, comandas[comandaIndex].status);
+            // Atualizar comanda no Firebase
+            await atualizarComandaFirebase(comandas[comandaIndex].id, comandas[comandaIndex].itens, comandas[comandaIndex].status);
             
             atualizarItensComandaModal(comandaIndex);
         }
@@ -1931,7 +1915,7 @@
                 percentualDesconto: percentualDesconto,
                 totalFinal: totalFinal,
                 formaPagamento: formaPagamento,
-                numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 1, // ARMAZENAR NÚMERO DE PARCELAS
+                numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 1,
                 data: new Date().toISOString()
             };
             
@@ -1939,8 +1923,8 @@
             vendas.push(venda);
             localStorage.setItem('vendas', JSON.stringify(vendas));
             
-            // Salvar venda no Google Sheets
-            await salvarVendaGoogle(venda);
+            // Salvar venda no Firebase
+            await salvarVendaFirebase(venda);
             
             // Remover comanda
             comandas.splice(index, 1);
@@ -1981,7 +1965,7 @@
             }
         }
 
-        // CORREÇÃO: Função para carregar relatórios
+        // Função para carregar relatórios
         function carregarRelatorios() {
             const dataInicio = document.getElementById('data-inicio').value;
             const dataFim = document.getElementById('data-fim').value;
