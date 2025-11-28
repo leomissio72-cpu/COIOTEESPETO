@@ -496,6 +496,42 @@
             color: white;
         }
         
+        /* Estilos para desconto */
+        .desconto-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .desconto-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .desconto-input-group input {
+            flex: 1;
+        }
+        
+        .desconto-valor {
+            font-weight: bold;
+            color: var(--success);
+        }
+        
+        .desconto-aplicado {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .total-com-desconto {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+        
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -875,6 +911,8 @@
                             <th>Comanda</th>
                             <th>Cliente</th>
                             <th>Total</th>
+                            <th>Desconto</th>
+                            <th>Total Final</th>
                             <th>Pagamento</th>
                             <th>Ações</th>
                         </tr>
@@ -951,6 +989,16 @@
                 </div>
             </div>
             
+            <!-- Seção de Desconto -->
+            <div class="desconto-section">
+                <h4>Aplicar Desconto</h4>
+                <div class="desconto-input-group">
+                    <input type="number" id="percentual-desconto" min="0" max="100" step="0.5" placeholder="% de desconto">
+                    <button class="btn btn-warning" id="aplicar-desconto">Aplicar</button>
+                </div>
+                <div id="desconto-info" style="margin-top: 10px;"></div>
+            </div>
+            
             <!-- QR Code PIX (aparece apenas quando PIX é selecionado) -->
             <div id="pix-code-container" class="pix-code hidden">
                 <h4>Pagamento via PIX - Coiote BBQ</h4>
@@ -991,6 +1039,11 @@
         // Código PIX do Coiote BBQ
         const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
 
+        // Variáveis para desconto
+        let percentualDesconto = 0;
+        let valorDesconto = 0;
+        let totalComDesconto = 0;
+
         // Função para copiar código PIX
         function copiarCodigoPix() {
             const textArea = document.createElement('textarea');
@@ -1000,6 +1053,42 @@
             document.execCommand('copy');
             document.body.removeChild(textArea);
             alert('Código PIX copiado para a área de transferência!');
+        }
+
+        // Função para aplicar desconto
+        function aplicarDesconto() {
+            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
+            const comanda = comandas[comandaAtual];
+            
+            if (!comanda || comanda.itens.length === 0) {
+                alert('Não é possível aplicar desconto em uma comanda sem itens.');
+                return;
+            }
+            
+            const percentualInput = document.getElementById('percentual-desconto');
+            percentualDesconto = parseFloat(percentualInput.value) || 0;
+            
+            if (percentualDesconto < 0 || percentualDesconto > 100) {
+                alert('Por favor, insira um percentual de desconto válido (0-100%).');
+                return;
+            }
+            
+            // Calcular total da comanda
+            const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+            
+            // Calcular desconto
+            valorDesconto = (totalComanda * percentualDesconto) / 100;
+            totalComDesconto = totalComanda - valorDesconto;
+            
+            // Atualizar exibição
+            const descontoInfo = document.getElementById('desconto-info');
+            descontoInfo.innerHTML = `
+                <div class="desconto-aplicado">
+                    <p>Desconto aplicado: ${percentualDesconto}%</p>
+                    <p>Valor do desconto: <span class="desconto-valor">- R$ ${valorDesconto.toFixed(2)}</span></p>
+                    <p class="total-com-desconto">Total com desconto: R$ ${totalComDesconto.toFixed(2)}</p>
+                </div>
+            `;
         }
 
         // Funções de integração com Google Sheets
@@ -1102,6 +1191,8 @@
                 formData.append('comandaId', venda.comandaId);
                 formData.append('cliente', venda.cliente);
                 formData.append('total', venda.total);
+                formData.append('desconto', venda.desconto || 0);
+                formData.append('totalFinal', venda.totalFinal);
                 formData.append('formaPagamento', venda.formaPagamento);
                 formData.append('data', venda.data);
                 formData.append('itens', JSON.stringify(venda.itens));
@@ -1545,6 +1636,13 @@
                 return;
             }
             
+            // Resetar desconto
+            percentualDesconto = 0;
+            valorDesconto = 0;
+            totalComDesconto = 0;
+            document.getElementById('percentual-desconto').value = '';
+            document.getElementById('desconto-info').innerHTML = '';
+            
             // Fechar modal da comanda
             document.getElementById('modal-comanda').style.display = 'none';
             
@@ -1583,6 +1681,9 @@
                 modalPagamento.style.display = 'none';
                 document.getElementById('modal-comanda').style.display = 'flex';
             };
+            
+            // Configurar evento do botão de desconto
+            document.getElementById('aplicar-desconto').onclick = aplicarDesconto;
             
             // Fechar modal
             document.querySelector('#modal-pagamento .close-btn').onclick = () => {
@@ -1695,12 +1796,18 @@
             
             const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
             
+            // Calcular total final (com desconto, se aplicado)
+            const totalFinal = totalComDesconto > 0 ? totalComDesconto : total;
+            
             // Registrar venda
             const venda = {
                 comandaId: comanda.id,
                 cliente: comanda.cliente,
                 itens: [...comanda.itens],
                 total: total,
+                desconto: valorDesconto,
+                percentualDesconto: percentualDesconto,
+                totalFinal: totalFinal,
                 formaPagamento: formaPagamento,
                 data: new Date().toISOString()
             };
@@ -1719,7 +1826,14 @@
             // Fechar modal
             document.getElementById('modal-pagamento').style.display = 'none';
             
-            alert(`Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)} - Forma de pagamento: ${formaPagamento}`);
+            let mensagem = `Comanda fechada com sucesso! Total: R$ ${total.toFixed(2)}`;
+            if (percentualDesconto > 0) {
+                mensagem += `\nDesconto aplicado: ${percentualDesconto}% (-R$ ${valorDesconto.toFixed(2)})`;
+                mensagem += `\nTotal com desconto: R$ ${totalFinal.toFixed(2)}`;
+            }
+            mensagem += `\nForma de pagamento: ${formaPagamento}`;
+            
+            alert(mensagem);
             carregarComandas();
             atualizarDashboard();
         }
@@ -1761,7 +1875,7 @@
             tabela.innerHTML = '';
             
             if (vendas.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
+                tabela.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nenhuma venda encontrada</td></tr>';
                 return;
             }
             
@@ -1794,6 +1908,8 @@
                     <td>#${venda.comandaId}</td>
                     <td>${venda.cliente || 'Cliente não informado'}</td>
                     <td>R$ ${venda.total.toFixed(2)}</td>
+                    <td>${venda.desconto > 0 ? `R$ ${venda.desconto.toFixed(2)} (${venda.percentualDesconto}%)` : 'R$ 0,00'}</td>
+                    <td>R$ ${venda.totalFinal.toFixed(2)}</td>
                     <td>${pagamentoFormatado}</td>
                     <td>
                         <button class="btn btn-primary" onclick="verDetalhesVenda(${index})">Ver Detalhes</button>
@@ -1829,18 +1945,31 @@
             const modal = document.getElementById('modal-venda');
             const container = document.getElementById('detalhes-venda');
             
+            let descontoInfo = '';
+            if (venda.desconto > 0) {
+                descontoInfo = `
+                    <p><strong>Desconto Aplicado:</strong> ${venda.percentualDesconto}% (R$ ${venda.desconto.toFixed(2)})</p>
+                `;
+            }
+            
             container.innerHTML = `
-                <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
-                <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
-                <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+                    <p><strong>Cliente:</strong> ${venda.cliente || 'Cliente não informado'}</p>
+                    <p><strong>Data:</strong> ${new Date(venda.data).toLocaleString('pt-BR')}</p>
+                    <p><strong>Forma de Pagamento:</strong> ${pagamentoTexto}</p>
+                    ${descontoInfo}
+                </div>
+                
                 <h4>Itens:</h4>
                 <ul>
                     ${venda.itens.map(item => `
                         <li>${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}</li>
                     `).join('')}
                 </ul>
-                <p><strong>Total:</strong> R$ ${venda.total.toFixed(2)}</p>
+                <p><strong>Total Bruto:</strong> R$ ${venda.total.toFixed(2)}</p>
+                ${venda.desconto > 0 ? `<p><strong>Desconto:</strong> R$ ${venda.desconto.toFixed(2)}</p>` : ''}
+                <p><strong>Total Final:</strong> R$ ${venda.totalFinal.toFixed(2)}</p>
             `;
             
             modal.style.display = 'flex';
@@ -1875,7 +2004,7 @@
             }
             
             // Criar CSV
-            let csv = 'Data,Comanda,Cliente,Total,Forma de Pagamento\n';
+            let csv = 'Data,Comanda,Cliente,Total,Desconto,Total Final,Forma de Pagamento\n';
             
             vendas.forEach(venda => {
                 const data = new Date(venda.data);
@@ -1900,7 +2029,7 @@
                         pagamentoTexto = 'Não informado';
                 }
                 
-                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${pagamentoTexto}"\n`;
+                csv += `"${dataFormatada}","${venda.comandaId}","${venda.cliente || ''}","${venda.total.toFixed(2)}","${venda.desconto.toFixed(2)}","${venda.totalFinal.toFixed(2)}","${pagamentoTexto}"\n`;
             });
             
             // Criar e baixar arquivo
@@ -1960,7 +2089,7 @@
             }
             
             // Total em vendas
-            const totalVendas = vendas.reduce((sum, venda) => sum + venda.total, 0);
+            const totalVendas = vendas.reduce((sum, venda) => sum + venda.totalFinal, 0);
             document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
             
             // Comandas ativas
