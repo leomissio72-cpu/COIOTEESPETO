@@ -10,6 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
     
+    <!-- jsPDF para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         :root {
             --primary: #2c3e50;
@@ -2075,6 +2078,133 @@
             }
         }
 
+        // =============================================
+        // FUNÇÃO PARA GERAR PDF
+        // =============================================
+        
+        function gerarPDF(venda) {
+            // Verificar se jsPDF está disponível
+            if (typeof window.jspdf === 'undefined') {
+                alert('Biblioteca jsPDF não carregada. Não é possível gerar o PDF.');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configurações do PDF
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            const contentWidth = pageWidth - (margin * 2);
+            
+            // Cabeçalho
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('COIOTE BBQ', pageWidth / 2, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text('NOTA FISCAL', pageWidth / 2, 30, { align: 'center' });
+            
+            // Linha divisória
+            doc.line(margin, 35, pageWidth - margin, 35);
+            
+            // Informações da venda
+            let yPos = 45;
+            doc.setFontSize(10);
+            doc.text(`Comanda: #${venda.comandaId}`, margin, yPos);
+            doc.text(`Data: ${new Date(venda.data).toLocaleString('pt-BR')}`, pageWidth - margin, yPos, { align: 'right' });
+            
+            yPos += 8;
+            doc.text(`Cliente: ${venda.cliente || 'Cliente não informado'}`, margin, yPos);
+            
+            yPos += 15;
+            
+            // Cabeçalho da tabela de itens
+            doc.setFont('helvetica', 'bold');
+            doc.text('Item', margin, yPos);
+            doc.text('Qtd', margin + 100, yPos);
+            doc.text('Valor', pageWidth - margin, yPos, { align: 'right' });
+            
+            yPos += 8;
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 5;
+            
+            // Itens da venda
+            doc.setFont('helvetica', 'normal');
+            venda.itens.forEach(item => {
+                // Quebrar texto se o nome for muito longo
+                const itemName = item.nome;
+                const itemLines = doc.splitTextToSize(itemName, 80);
+                
+                // Verificar se precisa de nova página
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                doc.text(itemLines, margin, yPos);
+                doc.text(item.quantidade.toString(), margin + 100, yPos);
+                doc.text(`R$ ${(item.preco * item.quantidade).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+                
+                yPos += (itemLines.length * 5) + 5;
+            });
+            
+            yPos += 10;
+            
+            // Totais
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 10;
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text('Subtotal:', margin + 100, yPos);
+            doc.text(`R$ ${venda.total.toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+            
+            if (venda.desconto > 0) {
+                yPos += 8;
+                doc.text('Desconto:', margin + 100, yPos);
+                doc.text(`- R$ ${venda.desconto.toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+            }
+            
+            yPos += 8;
+            doc.text('Total:', margin + 100, yPos);
+            doc.text(`R$ ${venda.totalFinal.toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+            
+            // Forma de pagamento
+            yPos += 15;
+            let formaPagamentoTexto = '';
+            switch(venda.formaPagamento) {
+                case 'dinheiro':
+                    formaPagamentoTexto = 'Dinheiro';
+                    break;
+                case 'pix':
+                    formaPagamentoTexto = 'PIX';
+                    break;
+                case 'debito':
+                    formaPagamentoTexto = 'Cartão de Débito';
+                    break;
+                case 'credito':
+                    formaPagamentoTexto = 'Cartão de Crédito';
+                    if (venda.numeroParcelas > 1) {
+                        formaPagamentoTexto += ` (${venda.numeroParcelas}x)`;
+                    }
+                    break;
+                default:
+                    formaPagamentoTexto = venda.formaPagamento;
+            }
+            
+            doc.text(`Forma de pagamento: ${formaPagamentoTexto}`, margin, yPos);
+            
+            // Rodapé
+            yPos += 20;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Obrigado pela preferência! Volte sempre!', pageWidth / 2, yPos, { align: 'center' });
+            
+            // Salvar o PDF
+            doc.save(`nota_comanda_${venda.comandaId}.pdf`);
+        }
+
         async function fecharComanda(id) {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
@@ -2132,6 +2262,14 @@
                     }
                     
                     alert(mensagem);
+                    
+                    // Perguntar se deseja gerar PDF da nota
+                    setTimeout(() => {
+                        if (confirm('Deseja gerar o PDF da nota fiscal?')) {
+                            gerarPDF(venda);
+                        }
+                    }, 500);
+                    
                     // O listener vai atualizar automaticamente as listas
                 }
             } catch (error) {
