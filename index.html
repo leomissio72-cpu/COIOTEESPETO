@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
     
     <style>
+        /* Todos os estilos CSS anteriores permanecem exatamente iguais */
         :root {
             --primary: #2c3e50;
             --secondary: #3498db;
@@ -1197,6 +1198,29 @@
         // Variáveis para parcelamento
         let numeroParcelas = 1;
 
+        // Variáveis globais
+        let comandaAtual = null;
+        let formaPagamento = null;
+        let produtoSelecionado = null;
+        let categoriaAtual = '';
+        let filtrosDashboard = {
+            produto: '',
+            categoria: '',
+            dataInicio: '',
+            dataFim: ''
+        };
+        let produtoEmEdicao = null;
+
+        // Categorias disponíveis
+        const categorias = [
+            "Espeto",
+            "Copos", 
+            "Bebidas",
+            "Facas",
+            "Itens para Churrasco",
+            "Espeto Congelado"
+        ];
+
         // Função para copiar código PIX
         function copiarCodigoPix() {
             const textArea = document.createElement('textarea');
@@ -1633,15 +1657,20 @@
             });
         }
 
-        // MODIFICAÇÃO: Atualizar a função fecharComanda para salvar desconto como valor absoluto
-        async function fecharComanda(index) {
+        // CORREÇÃO: Função fecharComanda corrigida
+        async function fecharComanda() {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
                 return;
             }
             
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
+            const comanda = comandas[comandaAtual];
+            
+            if (!comanda) {
+                alert('Erro: Comanda não encontrada.');
+                return;
+            }
             
             const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
             
@@ -1669,7 +1698,7 @@
             await salvarVendaFirebase(venda);
             
             // Remover comanda
-            comandas.splice(index, 1);
+            comandas.splice(comandaAtual, 1);
             localStorage.setItem('comandas', JSON.stringify(comandas));
             
             // Fechar modal
@@ -1694,30 +1723,6 @@
         }
 
         // ========== FUNÇÕES EXISTENTES DO SISTEMA ==========
-        // (Todas as funções originais do sistema permanecem aqui)
-        
-        // Variáveis globais
-        let comandaAtual = null;
-        let formaPagamento = null;
-        let produtoSelecionado = null;
-        let categoriaAtual = '';
-        let filtrosDashboard = {
-            produto: '',
-            categoria: '',
-            dataInicio: '',
-            dataFim: ''
-        };
-        let produtoEmEdicao = null;
-
-        // Categorias disponíveis
-        const categorias = [
-            "Espeto",
-            "Copos", 
-            "Bebidas",
-            "Facas",
-            "Itens para Churrasco",
-            "Espeto Congelado"
-        ];
 
         // Sistema de navegação atualizado para incluir a nova aba
         function setupNavigation() {
@@ -2092,6 +2097,7 @@
             });
         }
 
+        // CORREÇÃO: Função abrirModalPagamento corrigida
         function abrirModalPagamento(index) {
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
             const comanda = comandas[index];
@@ -2129,7 +2135,7 @@
             
             // Configurar eventos de seleção de pagamento
             document.querySelectorAll('.payment-option').forEach(option => {
-                option.addEventListener('click', function() {
+                option.onclick = function() {
                     document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
                     formaPagamento = this.getAttribute('data-payment');
@@ -2143,24 +2149,24 @@
                     
                     // Mostrar/ocultar seção de parcelas
                     toggleParcelasSection();
-                });
+                };
             });
             
             // Configurar eventos das parcelas
             document.querySelectorAll('.parcela-option').forEach(option => {
-                option.addEventListener('click', function() {
+                option.onclick = function() {
                     document.querySelectorAll('.parcela-option').forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
                     numeroParcelas = parseInt(this.getAttribute('data-parcelas'));
                     atualizarInfoParcelas();
-                });
+                };
             });
             
             // Selecionar primeira parcela por padrão
             document.querySelector('.parcela-option[data-parcelas="1"]').classList.add('selected');
             
-            // Configurar eventos dos botões
-            document.getElementById('confirmar-pagamento').onclick = () => fecharComanda(index);
+            // CORREÇÃO: Configurar eventos dos botões de forma correta
+            document.getElementById('confirmar-pagamento').onclick = fecharComanda;
             document.getElementById('cancelar-pagamento').onclick = () => {
                 modalPagamento.style.display = 'none';
                 document.getElementById('modal-comanda').style.display = 'flex';
@@ -2254,7 +2260,7 @@
             }
             
             if (dataFim) {
-                // Adicionar um dia para incluir vendas do day final
+                // Adicionar um dia para incluir vendas do dia final
                 const fim = new Date(dataFim);
                 fim.setDate(fim.getDate() + 1);
                 vendas = vendas.filter(venda => venda.data < fim.toISOString());
