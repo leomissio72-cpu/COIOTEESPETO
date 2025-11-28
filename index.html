@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão - Restaurante</title>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
-    
     <style>
         :root {
             --primary: #2c3e50;
@@ -55,33 +50,6 @@
         .logo {
             font-size: 24px;
             font-weight: bold;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-        
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
         }
         
         nav ul {
@@ -145,27 +113,6 @@
         .btn-warning {
             background-color: var(--warning);
             color: white;
-        }
-        
-        .btn-google {
-            background-color: #ffffff;
-            color: #757575;
-            border: 1px solid #dadce0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px 15px;
-            font-weight: 500;
-        }
-        
-        .btn-google:hover {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        
-        .btn-google img {
-            width: 18px;
-            height: 18px;
         }
         
         .btn:hover {
@@ -488,14 +435,14 @@
             padding: 20px;
         }
         
-        .qr-code {
-            max-width: 250px;
+        .qr-code-container img {
+            max-width: 300px;
+            width: 100%;
             height: auto;
             border: 2px solid #ddd;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 10px;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: white;
         }
         
         .pix-code {
@@ -504,25 +451,17 @@
             background-color: #f8f9fa;
             border-radius: 8px;
             margin: 15px 0;
-            border: 1px solid #d1ecf1;
         }
         
-        .pix-instructions {
-            margin-top: 15px;
+        .pix-code-text {
+            background-color: white;
             padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        
-        .pix-instructions ol {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
             margin: 10px 0;
-            padding-left: 20px;
-            text-align: left;
-        }
-        
-        .pix-instructions li {
-            margin-bottom: 5px;
         }
         
         .action-buttons {
@@ -534,34 +473,27 @@
             padding: 5px 10px;
             font-size: 12px;
         }
-        
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80vh;
-            flex-direction: column;
-            gap: 20px;
+
+        .sync-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
         }
         
-        .login-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
+        .sync-success {
+            background-color: var(--success);
+            color: white;
         }
         
-        .login-title {
-            margin-bottom: 20px;
-            color: var(--primary);
+        .sync-error {
+            background-color: var(--danger);
+            color: white;
         }
         
-        .login-subtitle {
-            margin-bottom: 30px;
-            color: #666;
+        .sync-loading {
+            background-color: var(--warning);
+            color: white;
         }
         
         @media (max-width: 1024px) {
@@ -712,33 +644,13 @@
             .action-buttons {
                 flex-direction: column;
             }
-            
-            .user-info {
-                margin-top: 10px;
-                width: 100%;
-                justify-content: flex-end;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Modal de Login -->
-    <div id="login-modal" class="modal" style="display: flex;">
-        <div class="modal-content">
-            <div class="login-card">
-                <h2 class="login-title">Sistema Restaurante</h2>
-                <p class="login-subtitle">Faça login para acessar o sistema</p>
-                <button id="google-login" class="btn btn-google">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                    Entrar com Google
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <header style="display: none;" id="main-header">
+    <header>
         <div class="container header-content">
-            <div class="logo">Sistema Restaurante</div>
+            <div class="logo">Sistema Restaurante - Coiote BBQ</div>
             <div class="menu-toggle" id="menuToggle">
                 <span></span>
                 <span></span>
@@ -752,15 +664,10 @@
                     <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
                 </ul>
             </nav>
-            <div class="user-info" id="user-info">
-                <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
-                <span id="user-name">Usuário</span>
-                <button class="logout-btn" id="logout-btn">Sair</button>
-            </div>
         </div>
     </header>
 
-    <div class="container" id="main-content" style="display: none;">
+    <div class="container">
         <!-- Dashboard -->
         <section id="dashboard" class="section active">
             <h1>Dashboard</h1>
@@ -859,6 +766,7 @@
                 </div>
                 
                 <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
+                <span id="sync-comanda-status" class="sync-status hidden"></span>
             </div>
             
             <div class="card">
@@ -906,6 +814,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                        <span id="sync-produto-status" class="sync-status hidden"></span>
                     </div>
                     <div class="form-group">
                         <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
@@ -1044,21 +953,16 @@
             
             <!-- QR Code PIX (aparece apenas quando PIX é selecionado) -->
             <div id="pix-code-container" class="pix-code hidden">
-                <h4>Pagamento via PIX</h4>
+                <h4>Pagamento via PIX - Coiote BBQ</h4>
                 <p>Escaneie o QR Code abaixo para pagar:</p>
                 <div class="qr-code-container">
-                    <!-- SUBSTITUA ESTE SRC PELA SUA IMAGEM DO QR CODE PIX -->
-                    <img src="./images/qrcode-pix.png" alt="QR Code PIX" class="qr-code">
+                    <img src="https://i.imgur.com/4R3p0gG.png" alt="QR Code PIX Coiote BBQ" id="qrcode-image">
                 </div>
-                <div class="pix-instructions">
-                    <p><strong>Instruções:</strong></p>
-                    <ol>
-                        <li>Abra o aplicativo do seu banco</li>
-                        <li>Selecione a opção PIX</li>
-                        <li>Escaneie o código acima</li>
-                        <li>Confirme o pagamento</li>
-                    </ol>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">Ou copie o código PIX:</p>
+                <div class="pix-code-text" id="pix-code-text">
+                    00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9
                 </div>
+                <button class="btn btn-primary" onclick="copiarCodigoPix()" style="margin-top: 10px;">Copiar Código PIX</button>
             </div>
             
             <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -1081,89 +985,161 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD5NWbiiPIoc4N9qUizsAkX-S_jbsWUhfY",
-            authDomain: "espeto-a4f94.firebaseapp.com",
-            projectId: "espeto-a4f94",
-            storageBucket: "espeto-a4f94.firebasestorage.app",
-            messagingSenderId: "1021397176394",
-            appId: "1:1021397176394:web:9b65858006f96bcf4956b3",
-            measurementId: "G-56HE56LKJ5"
-        };
+        // URL do Google Apps Script
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEyrCgdjHIHSa_BB11kFIJtIXSD9gr-9HIDNeT7SUJfkychVvcAVOgqeEZq4_hlV06/exec';
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const analytics = firebase.analytics();
-        const auth = firebase.auth();
+        // Código PIX do Coiote BBQ
+        const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
 
-        // Sistema de autenticação
-        function initAuth() {
-            // Observador de estado de autenticação
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    // Usuário logado
-                    showApp(user);
+        // Função para copiar código PIX
+        function copiarCodigoPix() {
+            const textArea = document.createElement('textarea');
+            textArea.value = CODIGO_PIX;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Código PIX copiado para a área de transferência!');
+        }
+
+        // Funções de integração com Google Sheets
+        async function salvarProdutoGoogle(produto) {
+            const syncStatus = document.getElementById('sync-produto-status');
+            syncStatus.textContent = 'Enviando...';
+            syncStatus.className = 'sync-status sync-loading';
+            syncStatus.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'cadastrarProduto');
+                formData.append('nome', produto.nome);
+                formData.append('categoria', produto.categoria);
+                formData.append('preco', produto.preco);
+                formData.append('descricao', produto.descricao || '');
+                formData.append('id', produto.id);
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    syncStatus.textContent = '✓ Sincronizado';
+                    syncStatus.className = 'sync-status sync-success';
                 } else {
-                    // Usuário não logado
-                    showLogin();
+                    syncStatus.textContent = '✗ Erro';
+                    syncStatus.className = 'sync-status sync-error';
                 }
-            });
-
-            // Configurar login com Google
-            document.getElementById('google-login').addEventListener('click', signInWithGoogle);
-            
-            // Configurar logout
-            document.getElementById('logout-btn').addEventListener('click', signOut);
+                
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar produto no Google Sheets:', error);
+                syncStatus.textContent = '✗ Erro de rede';
+                syncStatus.className = 'sync-status sync-error';
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                return { sucesso: false, erro: error.message };
+            }
         }
 
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    // Login bem-sucedido
-                    console.log('Usuário logado:', result.user);
-                })
-                .catch((error) => {
-                    console.error('Erro no login:', error);
-                    alert('Erro ao fazer login: ' + error.message);
+        async function salvarComandaGoogle(comanda) {
+            const syncStatus = document.getElementById('sync-comanda-status');
+            syncStatus.textContent = 'Enviando...';
+            syncStatus.className = 'sync-status sync-loading';
+            syncStatus.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'criarComanda');
+                formData.append('id', comanda.id);
+                formData.append('cliente', comanda.cliente);
+                formData.append('dataAbertura', comanda.dataAbertura);
+                formData.append('status', comanda.status);
+                formData.append('itens', JSON.stringify(comanda.itens));
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
                 });
+                
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    syncStatus.textContent = '✓ Sincronizado';
+                    syncStatus.className = 'sync-status sync-success';
+                } else {
+                    syncStatus.textContent = '✗ Erro';
+                    syncStatus.className = 'sync-status sync-error';
+                }
+                
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar comanda no Google Sheets:', error);
+                syncStatus.textContent = '✗ Erro de rede';
+                syncStatus.className = 'sync-status sync-error';
+                setTimeout(() => {
+                    syncStatus.classList.add('hidden');
+                }, 3000);
+                return { sucesso: false, erro: error.message };
+            }
         }
 
-        function signOut() {
-            auth.signOut()
-                .then(() => {
-                    // Logout bem-sucedido
-                    console.log('Usuário deslogado');
-                })
-                .catch((error) => {
-                    console.error('Erro no logout:', error);
+        async function salvarVendaGoogle(venda) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'registrarVenda');
+                formData.append('comandaId', venda.comandaId);
+                formData.append('cliente', venda.cliente);
+                formData.append('total', venda.total);
+                formData.append('formaPagamento', venda.formaPagamento);
+                formData.append('data', venda.data);
+                formData.append('itens', JSON.stringify(venda.itens));
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
                 });
+                
+                const result = await response.json();
+                console.log('Venda salva no Google Sheets:', result);
+                return result;
+            } catch (error) {
+                console.error('Erro ao salvar venda no Google Sheets:', error);
+                return { sucesso: false, erro: error.message };
+            }
         }
 
-        function showApp(user) {
-            // Esconder modal de login
-            document.getElementById('login-modal').style.display = 'none';
-            
-            // Mostrar header e conteúdo principal
-            document.getElementById('main-header').style.display = 'block';
-            document.getElementById('main-content').style.display = 'block';
-            
-            // Atualizar informações do usuário
-            document.getElementById('user-name').textContent = user.displayName || 'Usuário';
-            document.getElementById('user-avatar').src = user.photoURL || 'https://via.placeholder.com/32';
-            
-            // Inicializar aplicação
-            initializeApp();
-        }
+        async function atualizarComandaGoogle(comandaId, itens, status) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'atualizarComanda');
+                formData.append('id', comandaId);
+                formData.append('itens', JSON.stringify(itens));
+                formData.append('status', status);
 
-        function showLogin() {
-            // Mostrar modal de login
-            document.getElementById('login-modal').style.display = 'flex';
-            
-            // Esconder header e conteúdo principal
-            document.getElementById('main-header').style.display = 'none';
-            document.getElementById('main-content').style.display = 'none';
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                console.log('Comanda atualizada no Google Sheets:', result);
+                return result;
+            } catch (error) {
+                console.error('Erro ao atualizar comanda no Google Sheets:', error);
+                return { sucesso: false, erro: error.message };
+            }
         }
 
         // Sistema de navegação
@@ -1274,7 +1250,7 @@
             });
         }
 
-        function adicionarProduto() {
+        async function adicionarProduto() {
             const nome = document.getElementById('nome-produto').value;
             const categoria = document.getElementById('categoria').value;
             const preco = parseFloat(document.getElementById('preco').value);
@@ -1311,6 +1287,9 @@
                 
                 produtos.push(novoProduto);
                 mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
+                
+                // Salvar no Google Sheets
+                await salvarProdutoGoogle(novoProduto);
             }
             
             localStorage.setItem('produtos', JSON.stringify(produtos));
@@ -1402,7 +1381,7 @@
             });
         }
 
-        function criarComanda() {
+        async function criarComanda() {
             const cliente = document.getElementById('cliente').value;
             
             if (!cliente) {
@@ -1413,15 +1392,20 @@
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
             const id = gerarIdComanda();
             
-            comandas.push({
+            const novaComanda = {
                 id: id,
                 cliente: cliente,
                 itens: [],
                 dataAbertura: new Date().toISOString(),
                 status: 'ativa'
-            });
+            };
+            
+            comandas.push(novaComanda);
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Salvar no Google Sheets
+            await salvarComandaGoogle(novaComanda);
             
             // Limpar formulário
             document.getElementById('cliente').value = '';
@@ -1645,7 +1629,7 @@
             totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
         }
 
-        function adicionarItemComanda(index) {
+        async function adicionarItemComanda(index) {
             const quantidade = parseInt(document.getElementById('quantidade').value);
             
             if (!produtoSelecionado) {
@@ -1676,6 +1660,10 @@
             }
             
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Atualizar comanda no Google Sheets
+            await atualizarComandaGoogle(comanda.id, comanda.itens, comanda.status);
+            
             atualizarItensComandaModal(index);
             
             // Resetar seleção
@@ -1685,14 +1673,18 @@
             });
         }
 
-        function removerItemComanda(comandaIndex, itemIndex) {
+        async function removerItemComanda(comandaIndex, itemIndex) {
             const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
             comandas[comandaIndex].itens.splice(itemIndex, 1);
             localStorage.setItem('comandas', JSON.stringify(comandas));
+            
+            // Atualizar comanda no Google Sheets
+            await atualizarComandaGoogle(comandas[comandaIndex].id, comandas[comandaIndex].itens, comandas[comandaIndex].status);
+            
             atualizarItensComandaModal(comandaIndex);
         }
 
-        function fecharComanda(index) {
+        async function fecharComanda(index) {
             if (!formaPagamento) {
                 alert('Por favor, selecione uma forma de pagamento.');
                 return;
@@ -1704,17 +1696,21 @@
             const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
             
             // Registrar venda
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            vendas.push({
+            const venda = {
                 comandaId: comanda.id,
                 cliente: comanda.cliente,
                 itens: [...comanda.itens],
                 total: total,
                 formaPagamento: formaPagamento,
                 data: new Date().toISOString()
-            });
+            };
             
+            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+            vendas.push(venda);
             localStorage.setItem('vendas', JSON.stringify(vendas));
+            
+            // Salvar venda no Google Sheets
+            await salvarVendaGoogle(venda);
             
             // Remover comanda
             comandas.splice(index, 1);
@@ -2088,9 +2084,9 @@
             document.getElementById('filtro-data-fim').value = dataFim.toISOString().split('T')[0];
         }
 
-        // Inicialização do Firebase Auth
+        // Inicialização ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
-            initAuth();
+            initializeApp();
         });
     </script>
 </body>
