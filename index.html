@@ -1,2419 +1,748 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sistema de Gestão - Restaurante</title>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
-
-    <style>
-        /* Estilos anteriores mantidos */
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-
-        nav ul li {
-            margin-left: 20px;
-        }
-
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        nav ul li a:hover, nav ul li a.active {
-            background-color: rgba(255,255,255,0.1);
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        h1, h2, h3 {
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
-        .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background-color: var(--secondary);
-            color: white;
-        }
-
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .btn-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table th, table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        .alert {
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--secondary);
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #777;
-        }
-
-        .comanda-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .comanda-total {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 15px;
-            text-align: right;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #777;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .payment-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .payment-option {
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .payment-option:hover {
-            border-color: var(--secondary);
-            background-color: #f8f9fa;
-        }
-
-        .payment-option.selected {
-            border-color: var(--success);
-            background-color: #e8f5e8;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .badge-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .badge-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .badge-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .badge-info {
-            background-color: var(--secondary);
-            color: white;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-        }
-
-        .product-item {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .product-item:hover {
-            background-color: #f8f9fa;
-            border-color: var(--secondary);
-        }
-
-        .product-item.selected {
-            background-color: #e8f5e8;
-            border-color: var(--success);
-        }
-
-        .product-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .product-price {
-            color: var(--success);
-            font-weight: bold;
-        }
-
-        .category-filter {
-            margin-bottom: 15px;
-        }
-
-        .category-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 5px;
-        }
-
-        .category-btn {
-            padding: 6px 12px;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        .category-btn:hover {
-            background-color: #e1e1e1;
-        }
-
-        .category-btn.active {
-            background-color: var(--secondary);
-            color: white;
-            border-color: var(--secondary);
-        }
-
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 30px;
-            height: 21px;
-            cursor: pointer;
-        }
-
-        .menu-toggle span {
-            display: block;
-            height: 3px;
-            width: 100%;
-            background-color: white;
-            border-radius: 3px;
-            transition: all 0.3s;
-        }
-
-        .dashboard-filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .dashboard-filters .form-group {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .qr-code-container {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .qr-code-container img {
-            max-width: 300px;
-            width: 100%;
-            height: auto;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            background-color: white;
-        }
-
-        .pix-code {
-            text-align: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .pix-code-text {
-            background-color: white;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            word-break: break-all;
-            margin: 10px 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .action-buttons .btn {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
-        .sync-status {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .sync-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .sync-error {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .sync-loading {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        /* Estilos para desconto */
-        .desconto-section {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid var(--warning);
-        }
-
-        .desconto-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .desconto-input-group input {
-            flex: 1;
-        }
-
-        .desconto-valor {
-            font-weight: bold;
-            color: var(--success);
-        }
-
-        .desconto-aplicado {
-            color: var(--success);
-            font-weight: bold;
-        }
-
-        .total-com-desconto {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--primary);
-            margin-top: 10px;
-        }
-
-        /* Estilos para parcelamento */
-        .parcelas-section {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid var(--secondary);
-        }
-
-        .parcelas-options {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .parcela-option {
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .parcela-option:hover {
-            border-color: var(--secondary);
-            background-color: #f8f9fa;
-        }
-
-        .parcela-option.selected {
-            border-color: var(--success);
-            background-color: #e8f5e8;
-        }
-
-        /* Nova seção para notas fiscais */
-        .notas-fiscais-section {
-            margin-top: 20px;
-        }
-
-        .nota-fiscal-item {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--secondary);
-        }
-
-        .nota-fiscal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .nota-fiscal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        /* Estilos para o modal de nota fiscal */
-        .nota-fiscal-modal {
-            font-family: 'Courier New', monospace;
-            line-height: 1.4;
-        }
-
-        .nota-header {
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .nota-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .nota-total {
-            border-top: 1px solid #000;
-            padding-top: 10px;
-            margin-top: 15px;
-            font-weight: bold;
-        }
-
-        .nota-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                padding: 15px;
-            }
-
-            .dashboard-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .product-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            .dashboard-filters {
-                flex-direction: column;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .parcelas-options {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 767px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .logo {
-                margin-bottom: 10px;
-                font-size: 20px;
-            }
-
-            nav {
-                width: 100%;
-            }
-
-            nav ul {
-                flex-direction: column;
-                display: none;
-                width: 100%;
-            }
-
-            nav ul.show {
-                display: flex;
-            }
-
-            nav ul li {
-                margin: 5px 0;
-                width: 100%;
-            }
-
-            nav ul li a {
-                display: block;
-                padding: 10px;
-                text-align: center;
-            }
-
-            .menu-toggle {
-                display: flex;
-                position: absolute;
-                top: 15px;
-                right: 20px;
-            }
-
-            .dashboard-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .stat-card {
-                padding: 10px;
-            }
-
-            .stat-value {
-                font-size: 20px;
-            }
-
-            .card {
-                padding: 15px;
-            }
-
-            .product-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 8px;
-            }
-
-            .payment-options {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: 15px;
-            }
-
-            .category-buttons {
-                gap: 5px;
-            }
-
-            .category-btn {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-
-            .comanda-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .comanda-item div:last-child {
-                align-self: flex-end;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            h2 {
-                font-size: 20px;
-            }
-
-            h3 {
-                font-size: 18px;
-            }
-
-            .dashboard-filters {
-                flex-direction: column;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .parcelas-options {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .nota-fiscal-actions {
-                flex-direction: column;
-            }
-        }
-    </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sistema Restaurante — Demo</title>
+<style>
+    :root{
+        --primary:#2c3e50;
+        --secondary:#3498db;
+        --success:#27ae60;
+        --danger:#e74c3c;
+        --warning:#f39c12;
+        --light:#f5f7fa;
+        --card:#ffffff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Arial, sans-serif}
+    body{background:var(--light);color:#222;line-height:1.4}
+    header{background:var(--primary);color:#fff;padding:14px 0;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .container{max-width:1200px;margin:0 auto;padding:18px}
+    .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{font-weight:700;font-size:20px}
+    .menu-toggle{display:none;cursor:pointer}
+    .menu-toggle span{display:block;height:3px;width:28px;background:#fff;margin:5px 0;border-radius:3px}
+    nav ul{display:flex;gap:10px;list-style:none}
+    nav a{color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;opacity:.95}
+    nav a.active, nav a:hover{background:rgba(255,255,255,0.08)}
+    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.04);margin-bottom:14px}
+    h1,h2{color:var(--primary);margin-bottom:10px}
+    .dashboard-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+    .stat-card{padding:14px;border-radius:8px;background:#fff;text-align:center}
+    .stat-value{font-size:20px;font-weight:700;color:var(--secondary)}
+    .stat-label{font-size:13px;color:#666}
+    .section{display:none}
+    .section.active{display:block}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#fafafa}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--secondary);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-warning{background:var(--warning);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .form-group{margin-bottom:10px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;max-height:260px;overflow:auto;padding:8px;border:1px solid #eee;border-radius:8px;background:#fff}
+    .product-item{padding:8px;border-radius:8px;border:1px solid #ddd;text-align:center;cursor:pointer}
+    .product-item.selected{background:#e8f5e8;border-color:var(--success)}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;padding:12px}
+    .modal .modal-content{background:#fff;width:100%;max-width:720px;border-radius:10px;padding:16px;max-height:90vh;overflow:auto}
+    .hidden{display:none !important}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+    .category-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .category-btn{padding:6px 10px;border-radius:999px;border:1px solid #ddd;background:#f7f7f7;cursor:pointer}
+    .category-btn.active{background:var(--secondary);color:#fff;border-color:var(--secondary)}
+    .action-buttons{display:flex;gap:8px;flex-wrap:wrap}
+    @media (max-width:800px){
+        .menu-toggle{display:block}
+        nav ul{display:none;flex-direction:column;background:transparent;margin-top:10px}
+        nav ul.show{display:flex}
+        .header-content{flex-direction:column;align-items:flex-start}
+    }
+</style>
 </head>
 <body>
-    <header>
-        <div class="container header-content">
-            <div class="logo">Sistema Restaurante - Coiote BBQ</div>
-            <div class="menu-toggle" id="menuToggle" aria-label="Abrir menu mobile" role="button">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <nav>
-                <ul id="navMenu">
-                    <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
-                    <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
-                    <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
-                    <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
-                    <li><a href="#" class="nav-link" data-section="notas-fiscais">Notas Fiscais</a></li>
-                </ul>
-            </nav>
+<header>
+    <div class="container header-content">
+        <div class="logo">Coiote BBQ — Sistema</div>
+        <div class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+            <span></span><span></span><span></span>
         </div>
-    </header>
-
-    <div class="container">
-        <!-- Dashboard -->
-        <section id="dashboard" class="section active">
-            <h1>Dashboard</h1>
-
-            <!-- Filtros do Dashboard -->
-            <div class="card">
-                <h2>Filtros</h2>
-                <div class="dashboard-filters">
-                    <div class="form-group">
-                        <label for="filtro-produto">Produto</label>
-                        <select id="filtro-produto">
-                            <option value="">Todos os produtos</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="filtro-categoria">Categoria</label>
-                        <select id="filtro-categoria">
-                            <option value="">Todas as categorias</option>
-                            <option value="Espeto">Espeto</option>
-                            <option value="Copos">Copos</option>
-                            <option value="Bebidas">Bebidas</option>
-                            <option value="Facas">Facas</option>
-                            <option value="Itens para Churrasco">Itens para Churrasco</option>
-                            <option value="Espeto Congelado">Espeto Congelado</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="filtro-data-inicio">Data Início</label>
-                        <input type="date" id="filtro-data-inicio">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="filtro-data-fim">Data Fim</label>
-                        <input type="date" id="filtro-data-fim">
-                    </div>
-
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary" id="aplicar-filtros">Aplicar Filtros</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="total-vendas">R$ 0,00</div>
-                    <div class="stat-label">Total em Vendas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="total-comandas">0</div>
-                    <div class="stat-label">Comandas Ativas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="total-produtos">0</div>
-                    <div class="stat-label">Produtos Cadastrados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="vendas-hoje">0</div>
-                    <div class="stat-label">Vendas Hoje</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Comandas Ativas</h2>
-                <div id="comandas-lista-dashboard"></div>
-            </div>
-
-            <div class="card">
-                <h2>Produtos Mais Vendidos</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="produtos-mais-vendidos">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Comandas -->
-        <section id="comandas" class="section">
-            <h1>Gerenciar Comandas</h1>
-
-            <div class="card">
-                <div class="alert alert-success hidden" id="comanda-success"></div>
-                <div class="alert alert-danger hidden" id="comanda-error"></div>
-
-                <div class="form-group">
-                    <label for="cliente">Nome do Cliente</label>
-                    <input type="text" id="cliente" placeholder="Nome do cliente">
-                </div>
-
-                <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
-                <span id="sync-comanda-status" class="sync-status hidden"></span>
-            </div>
-
-            <div class="card">
-                <h2>Comandas Ativas</h2>
-                <div id="comandas-lista"></div>
-            </div>
-        </section>
-
-        <!-- Produtos -->
-        <section id="produtos" class="section">
-            <h1>Gerenciar Produtos</h1>
-
-            <div class="card">
-                <div class="alert alert-success hidden" id="produto-success"></div>
-                <div class="alert alert-danger hidden" id="produto-error"></div>
-
-                <div class="form-group">
-                    <label for="nome-produto">Nome do Produto</label>
-                    <input type="text" id="nome-produto" placeholder="Nome do produto">
-                </div>
-
-                <div class="form-group">
-                    <label for="categoria">Categoria</label>
-                    <select id="categoria">
-                        <option value="">Selecione uma categoria</option>
-                        <option value="Espeto">Espeto</option>
-                        <option value="Copos">Copos</option>
-                        <option value="Bebidas">Bebidas</option>
-                        <option value="Facas">Facas</option>
-                        <option value="Itens para Churrasco">Itens para Churrasco</option>
-                        <option value="Espeto Congelado">Espeto Congelado</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="preco">Preço (R$)</label>
-                    <input type="number" id="preco" min="0" step="0.01" placeholder="Preço do produto">
-                </div>
-
-                <div class="form-group">
-                    <label for="descricao">Descrição</label>
-                    <textarea id="descricao" rows="3" placeholder="Descrição do produto"></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
-                        <span id="sync-produto-status" class="sync-status hidden"></span>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-warning hidden" id="cancelar-edicao">Cancelar Edição</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Produtos Cadastrados</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Categoria</th>
-                            <th>Preço</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-produtos">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Relatórios -->
-        <section id="relatorios" class="section">
-            <h1>Relatórios de Vendas</h1>
-
-            <div class="card">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="data-inicio">Data de Início</label>
-                        <input type="date" id="data-inicio">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="data-fim">Data de Fim</label>
-                        <input type="date" id="data-fim">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="filtrar-relatorio">Filtrar</button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-success" id="exportar-relatorio">Exportar para CSV</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Relatório de Vendas</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Comanda</th>
-                            <th>Cliente</th>
-                            <th>Total</th>
-                            <th>Desconto</th>
-                            <th>Total Final</th>
-                            <th>Pagamento</th>
-                            <th>Parcelas</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="relatorio-vendas">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Nova Seção: Notas Fiscais -->
-        <section id="notas-fiscais" class="section">
-            <h1>Notas Fiscais</h1>
-
-            <div class="card">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nota-data-inicio">Data de Início</label>
-                        <input type="date" id="nota-data-inicio">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nota-data-fim">Data de Fim</label>
-                        <input type="date" id="nota-data-fim">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nota-cliente">Cliente</label>
-                        <input type="text" id="nota-cliente" placeholder="Filtrar por cliente">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="filtrar-notas">Filtrar</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Vendas para Emissão de Nota Fiscal</h2>
-                <div id="lista-notas-fiscais">
-                    <!-- As notas fiscais serão carregadas aqui -->
-                </div>
-            </div>
-        </section>
+        <nav>
+            <ul id="navMenu">
+                <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
+                <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
+                <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
+                <li><a href="#" class="nav-link" data-section="notas-fiscais">Notas Fiscais</a></li>
+            </ul>
+        </nav>
     </div>
+</header>
 
-    <!-- Modal para adicionar itens à comanda -->
-    <div id="modal-comanda" class="modal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true">
-            <div class="modal-header">
-                <h3>Adicionar Itens à Comanda</h3>
-                <button class="btn btn-primary" id="salvar-fechar-comanda">OK</button>
-            </div>
+<div class="container" style="padding-top:18px;">
 
-            <div class="category-filter">
-                <label>Filtrar por Categoria:</label>
-                <div class="category-buttons" id="category-buttons">
-                    <!-- Botões de categoria serão gerados dinamicamente -->
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="section active">
+        <h1>Dashboard</h1>
+
+        <div class="card">
+            <h2>Filtros</h2>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div style="flex:1" class="form-group">
+                    <label>Produto</label>
+                    <select id="filtro-produto"><option value="">Todos os produtos</option></select>
+                </div>
+                <div style="flex:1" class="form-group">
+                    <label>Categoria</label>
+                    <select id="filtro-categoria"><option value="">Todas</option></select>
+                </div>
+                <div style="width:160px" class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" id="filtro-data-inicio"/>
+                </div>
+                <div style="width:160px" class="form-group">
+                    <label>Data Fim</label>
+                    <input type="date" id="filtro-data-fim"/>
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                    <button class="btn btn-primary" id="aplicar-filtros">Aplicar</button>
                 </div>
             </div>
+        </div>
 
-            <div class="product-grid" id="product-grid">
-                <!-- Produtos serão gerados dinamicamente -->
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-vendas">R$ 0,00</div>
+                <div class="stat-label">Total em Vendas</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-comandas">0</div>
+                <div class="stat-label">Comandas Ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-produtos">0</div>
+                <div class="stat-label">Produtos Cadastrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="vendas-hoje">0</div>
+                <div class="stat-label">Vendas Hoje</div>
+            </div>
+        </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="quantidade">Quantidade</label>
-                    <input type="number" id="quantidade" min="1" value="1">
+        <div class="card">
+            <h2>Comandas Ativas</h2>
+            <div id="comandas-lista-dashboard"></div>
+        </div>
+
+        <div class="card">
+            <h2>Produtos Mais Vendidos</h2>
+            <table><thead><tr><th>Produto</th><th>Qtd</th><th>Total R$</th></tr></thead>
+            <tbody id="produtos-mais-vendidos"></tbody></table>
+        </div>
+    </section>
+
+    <!-- COMANDAS -->
+    <section id="comandas" class="section">
+        <h1>Gerenciar Comandas</h1>
+
+        <div class="card">
+            <div id="comanda-success" class="alert hidden" style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+            <div id="comanda-error" class="alert hidden" style="background:#ffe6e6;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+
+            <div class="form-group">
+                <label>Nome do Cliente</label>
+                <input id="cliente" placeholder="Nome do cliente"/>
+            </div>
+            <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
+        </div>
+
+        <div class="card">
+            <h2>Comandas Ativas</h2>
+            <div id="comandas-lista"></div>
+        </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section id="produtos" class="section">
+        <h1>Gerenciar Produtos</h1>
+
+        <div class="card">
+            <div id="produto-success" class="alert hidden" style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+            <div id="produto-error" class="alert hidden" style="background:#ffe6e6;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+
+            <div class="form-group">
+                <label>Nome do Produto</label>
+                <input id="nome-produto" placeholder="Nome do produto"/>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="categoria">
+                    <option value="">Selecione</option>
+                    <option>Espeto</option>
+                    <option>Copos</option>
+                    <option>Bebidas</option>
+                    <option>Facas</option>
+                    <option>Itens para Churrasco</option>
+                    <option>Espeto Congelado</option>
+                </select>
+            </div>
+            <div class="form-row" style="display:flex;gap:12px">
+                <div style="flex:1" class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" id="preco" min="0" step="0.01"/>
                 </div>
-                <div class="form-group">
+                <div style="flex:1" class="form-group">
                     <label>&nbsp;</label>
-                    <button class="btn btn-primary" id="adicionar-item-comanda" style="width: 100%;">Adicionar à Comanda</button>
+                    <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
                 </div>
-            </div>
-
-            <h3 style="margin-top: 20px;">Itens na Comanda</h3>
-            <div id="itens-comanda-modal"></div>
-
-            <div class="comanda-total" id="total-comanda-modal">Total: R$ 0,00</div>
-
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-success" id="fechar-comanda">Fechar Comanda</button>
-                <button class="btn btn-warning" id="cancelar-comanda">Cancelar Comanda</button>
             </div>
         </div>
-    </div>
 
-    <!-- Modal para forma de pagamento -->
-    <div id="modal-pagamento" class="modal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true">
-            <div class="modal-header">
-                <h3>Forma de Pagamento</h3>
-                <button class="close-btn" id="close-modal-pagamento">&times;</button>
-            </div>
+        <div class="card">
+            <h2>Produtos Cadastrados</h2>
+            <table><thead><tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr></thead>
+            <tbody id="lista-produtos"></tbody></table>
+        </div>
+    </section>
 
-            <div class="payment-options">
-                <div class="payment-option" data-payment="dinheiro">
-                    <h4>Dinheiro</h4>
-                </div>
-                <div class="payment-option" data-payment="pix">
-                    <h4>PIX</h4>
-                </div>
-                <div class="payment-option" data-payment="debito">
-                    <h4>Cartão de Débito</h4>
-                </div>
-                <div class="payment-option" data-payment="credito">
-                    <h4>Cartão de Crédito</h4>
-                </div>
-            </div>
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="section">
+        <h1>Relatórios</h1>
+        <div class="card">
+            <h2>Vendas Registradas</h2>
+            <table><thead><tr><th>Data</th><th>Comanda</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead>
+            <tbody id="relatorio-vendas"></tbody></table>
+        </div>
+    </section>
 
-            <!-- Seção de Parcelas (aparece apenas para crédito) -->
-            <div id="parcelas-section" class="parcelas-section hidden">
-                <h4>Parcelamento (Crédito)</h4>
-                <div class="parcelas-options">
-                    <div class="parcela-option" data-parcelas="1">1x</div>
-                    <div class="parcela-option" data-parcelas="2">2x</div>
-                    <div class="parcela-option" data-parcelas="3">3x</div>
-                    <div class="parcela-option" data-parcelas="4">4x</div>
-                    <div class="parcela-option" data-parcelas="5">5x</div>
-                    <div class="parcela-option" data-parcelas="6">6x</div>
-                    <div class="parcela-option" data-parcelas="7">7x</div>
-                    <div class="parcela-option" data-parcelas="8">8x</div>
-                    <div class="parcela-option" data-parcelas="9">9x</div>
-                    <div class="parcela-option" data-parcelas="10">10x</div>
-                    <div class="parcela-option" data-parcelas="11">11x</div>
-                    <div class="parcela-option" data-parcelas="12">12x</div>
-                </div>
-                <div id="info-parcelas" style="margin-top: 10px; font-weight: bold;"></div>
-            </div>
+    <!-- NOTAS FISCAIS -->
+    <section id="notas-fiscais" class="section">
+        <h1>Notas Fiscais</h1>
+        <div class="card" id="lista-notas-fiscais"></div>
+    </section>
 
-            <!-- Seção de Desconto MODIFICADA: agora é valor absoluto -->
-            <div class="desconto-section">
-                <h4>Aplicar Desconto</h4>
-                <div class="desconto-input-group">
-                    <input type="number" id="valor-desconto" min="0" step="0.01" placeholder="Valor do desconto (R$)">
-                    <button class="btn btn-warning" id="aplicar-desconto">Aplicar</button>
-                </div>
-                <div id="desconto-info" style="margin-top: 10px;"></div>
-            </div>
+</div>
 
-            <!-- QR Code PIX (aparece apenas quando PIX é selecionado) -->
-            <div id="pix-code-container" class="pix-code hidden">
-                <h4>Pagamento via PIX - Coiote BBQ</h4>
-                <p>Escaneie o QR Code abaixo para pagar:</p>
-                <div class="qr-code-container">
-                    <img src="https://i.imgur.com/4R3p0gG.png" alt="QR Code PIX Coiote BBQ" id="qrcode-image">
-                </div>
-                <p style="margin-top: 10px; font-size: 12px; color: #666;">Ou copie o código PIX:</p>
-                <div class="pix-code-text" id="pix-code-text">
-                    00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9
-                </div>
-                <button class="btn btn-primary" onclick="copiarCodigoPix()" style="margin-top: 10px;">Copiar Código PIX</button>
-            </div>
-
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-success" id="confirmar-pagamento" style="flex: 1;">Confirmar Pagamento</button>
-                <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
+<!-- MODAL COMANDA -->
+<div id="modal-comanda" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3>Adicionar itens à comanda</h3>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" id="salvar-fechar-comanda">Salvar/Fechar</button>
+                <button class="btn" id="fechar-modal-comanda">X</button>
             </div>
         </div>
-    </div>
 
-    <!-- Modal para visualizar detalhes da venda -->
-    <div id="modal-venda" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Detalhes da Venda</h3>
-                <button class="close-btn" id="close-modal-venda">&times;</button>
-            </div>
-
-            <div id="detalhes-venda"></div>
+        <div class="category-filter">
+            <label>Filtrar por categoria</label>
+            <div class="category-buttons" id="category-buttons"></div>
         </div>
-    </div>
 
-    <!-- Modal para nota fiscal do cliente -->
-    <div id="modal-nota-fiscal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Nota Fiscal - Coiote BBQ</h3>
-                <button class="close-btn" id="close-modal-nota">&times;</button>
+        <div class="product-grid" id="product-grid"></div>
+
+        <div style="display:flex;gap:10px;margin-top:10px">
+            <div style="width:120px" class="form-group">
+                <label>Quantidade</label>
+                <input type="number" id="quantidade" min="1" value="1"/>
             </div>
-
-            <div class="nota-fiscal-modal" id="conteudo-nota-fiscal">
-                <!-- Conteúdo da nota fiscal será gerado aqui -->
-            </div>
-
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" id="imprimir-nota-fiscal">Imprimir Nota Fiscal</button>
-                <button class="btn btn-success" id="baixar-nota-fiscal">Baixar PDF</button>
-                <button class="btn btn-warning" id="fechar-nota-fiscal">Fechar</button>
+            <div style="flex:1" class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" id="adicionar-item-comanda">Adicionar à Comanda</button>
             </div>
         </div>
+
+        <h4 style="margin-top:12px">Itens na comanda</h4>
+        <div id="itens-comanda-modal"></div>
+        <div style="text-align:right;font-weight:700;margin-top:10px" id="total-comanda-modal">Total: R$ 0,00</div>
     </div>
+</div>
 
-    <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyD5NWbiiPIoc4N9qUizsAkX-S_jbsWUhfY",
-            authDomain: "espeto-a4f94.firebaseapp.com",
-            projectId: "espeto-a4f94",
-            storageBucket: "espeto-a4f94.firebasestorage.app",
-            messagingSenderId: "1021397176394",
-            appId: "1:1021397176394:web:9b65858006f96bcf4956b3",
-            measurementId: "G-56HE56LKJ5"
-        };
+<!-- MODAL PAGAMENTO (simples) -->
+<div id="modal-pagamento" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3>Forma de Pagamento</h3>
+            <button class="close-btn" id="close-modal-pagamento">X</button>
+        </div>
 
-        // Inicializar Firebase (pode falhar se executado localmente sem internet)
-        let db = null;
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            try { firebase.analytics(); } catch (e) { /* analytics optional */ }
-        } catch (e) {
-            console.warn('Firebase não inicializado (ambiente offline?).', e);
-        }
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <div class="payment-option" data-payment="dinheiro">Dinheiro</div>
+            <div class="payment-option" data-payment="pix">PIX</div>
+            <div class="payment-option" data-payment="debito">Débito</div>
+            <div class="payment-option" data-payment="credito">Crédito</div>
+        </div>
 
-        // Código PIX do Coiote BBQ
-        const CODIGO_PIX = '00020126720014br.gov.bcb.pix01368293e1c5-117b-4f71-b43c-cebf9db754ef0210Coiote BBQ27600016BR.COM.PAGSEGURO013601D9105A-85D7-4B8C-B2F5-D33A62A56A075204599953039865802BR592559.080.908 GIOVANA TEIXEI6011Santo Andre62290525PAGS000000000251125113140630466D9';
+        <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-success" id="confirmar-pagamento">Confirmar</button>
+            <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
+        </div>
+    </div>
+</div>
 
-        // Variáveis para desconto MODIFICADAS: agora é valor absoluto
-        let valorDesconto = 0;
-        let totalComDesconto = 0;
+<!-- MODAL NOTA FISCAL -->
+<div id="modal-nota-fiscal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>Nota Fiscal</h3>
+            <button class="close-btn" id="close-modal-nota">X</button>
+        </div>
+        <div id="conteudo-nota-fiscal"></div>
+    </div>
+</div>
 
-        // Variáveis para parcelamento
-        let numeroParcelas = 1;
-
-        // Variáveis globais
-        let comandaAtual = null;
-        let formaPagamento = null;
-        let produtoSelecionado = null;
-        let categoriaAtual = '';
-        let filtrosDashboard = {
-            produto: '',
-            categoria: '',
-            dataInicio: '',
-            dataFim: ''
-        };
-        let produtoEmEdicao = null;
-        let vendaAtual = null;
-
-        // Categorias disponíveis
-        const categorias = [
-            "Espeto",
-            "Copos",
-            "Bebidas",
-            "Facas",
-            "Itens para Churrasco",
-            "Espeto Congelado"
+<script>
+/* ================== Dados de exemplo (inseridos se não existirem) ================== */
+(function seedSampleData() {
+    if (!localStorage.getItem('produtos')) {
+        const produtosExemplo = [
+            { id: 1, nome: 'Espeto de Coração', categoria: 'Espeto', preco: 12.50, descricao: 'Espeto grelhado' },
+            { id: 2, nome: 'Espeto de Frango', categoria: 'Espeto', preco: 10.00, descricao: 'Espeto temperado' },
+            { id: 3, nome: 'Refrigerante 350ml', categoria: 'Bebidas', preco: 6.50, descricao: 'Lata' },
+            { id: 4, nome: 'Copo Descartável', categoria: 'Copos', preco: 1.00, descricao: 'Copo 300ml' },
+            { id: 5, nome: 'Espeto Congelado 10un', categoria: 'Espeto Congelado', preco: 25.00, descricao: 'Pacote 10 unidades' }
         ];
-
-        // Função para copiar código PIX
-        function copiarCodigoPix() {
-            const textArea = document.createElement('textarea');
-            textArea.value = CODIGO_PIX;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            alert('Código PIX copiado para a área de transferência!');
-        }
-
-        // Função para aplicar desconto MODIFICADA: agora é valor absoluto
-        function aplicarDesconto() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[comandaAtual];
-
-            if (!comanda || comanda.itens.length === 0) {
-                alert('Não é possível aplicar desconto em uma comanda sem itens.');
-                return;
-            }
-
-            const valorInput = document.getElementById('valor-desconto');
-            valorDesconto = parseFloat(valorInput.value) || 0;
-
-            const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-
-            if (valorDesconto < 0 || valorDesconto > totalComanda) {
-                alert('Por favor, insira um valor de desconto válido (não negativo e não maior que o total).');
-                return;
-            }
-
-            totalComDesconto = totalComanda - valorDesconto;
-
-            // Atualizar exibição
-            const descontoInfo = document.getElementById('desconto-info');
-            descontoInfo.innerHTML = `
-                <div class="desconto-aplicado">
-                    <p>Desconto aplicado: R$ ${valorDesconto.toFixed(2)}</p>
-                    <p class="total-com-desconto">Total com desconto: R$ ${totalComDesconto.toFixed(2)}</p>
-                </div>
-            `;
-
-            // Atualizar informações de parcelas se estiver visível
-            if (formaPagamento === 'credito') {
-                atualizarInfoParcelas();
-            }
-        }
-
-        // Função para mostrar/ocultar seção de parcelas
-        function toggleParcelasSection() {
-            const parcelasSection = document.getElementById('parcelas-section');
-            if (formaPagamento === 'credito') {
-                parcelasSection.classList.remove('hidden');
-                atualizarInfoParcelas();
-            } else {
-                parcelasSection.classList.add('hidden');
-                numeroParcelas = 1; // Reset para 1 parcela se não for crédito
-            }
-        }
-
-        // Função para atualizar informações das parcelas
-        function atualizarInfoParcelas() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[comandaAtual];
-
-            if (!comanda || comanda.itens.length === 0) return;
-
-            const totalComanda = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            const totalFinal = totalComDesconto > 0 ? totalComDesconto : totalComanda;
-            const valorParcela = totalFinal / numeroParcelas;
-
-            const infoParcelas = document.getElementById('info-parcelas');
-            if (infoParcelas) {
-                infoParcelas.innerHTML = `
-                    ${numeroParcelas}x de R$ ${valorParcela.toFixed(2)} = R$ ${totalFinal.toFixed(2)}
-                `;
-            }
-        }
-
-        // Funções de integração com Firebase (seguras se db definido)
-        async function salvarProdutoFirebase(produto) {
-            const syncStatus = document.getElementById('sync-produto-status');
-            if (!syncStatus) return { sucesso: false };
-
-            syncStatus.textContent = 'Enviando...';
-            syncStatus.className = 'sync-status sync-loading';
-            syncStatus.classList.remove('hidden');
-
-            if (!db) {
-                syncStatus.textContent = '▲ Offline';
-                syncStatus.className = 'sync-status sync-error';
-                setTimeout(() => syncStatus.classList.add('hidden'), 1500);
-                return { sucesso: false, erro: 'Firebase não inicializado' };
-            }
-
-            try {
-                produto.dataCriacao = firebase.firestore.FieldValue.serverTimestamp();
-                produto.ultimaAtualizacao = firebase.firestore.FieldValue.serverTimestamp();
-
-                const docRef = await db.collection('produtos').add(produto);
-                produto.firebaseId = docRef.id;
-
-                syncStatus.textContent = '✓ Sincronizado';
-                syncStatus.className = 'sync-status sync-success';
-
-                setTimeout(() => { syncStatus.classList.add('hidden'); }, 3000);
-                return { sucesso: true, id: docRef.id };
-            } catch (error) {
-                console.error('Erro ao salvar produto no Firebase:', error);
-                syncStatus.textContent = '✗ Erro';
-                syncStatus.className = 'sync-status sync-error';
-                setTimeout(() => { syncStatus.classList.add('hidden'); }, 3000);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function salvarComandaFirebase(comanda) {
-            const syncStatus = document.getElementById('sync-comanda-status');
-            if (syncStatus) {
-                syncStatus.textContent = 'Enviando...';
-                syncStatus.className = 'sync-status sync-loading';
-                syncStatus.classList.remove('hidden');
-            }
-
-            if (!db) {
-                if (syncStatus) {
-                    syncStatus.textContent = '▲ Offline';
-                    syncStatus.className = 'sync-status sync-error';
-                    setTimeout(() => syncStatus.classList.add('hidden'), 1500);
-                }
-                return { sucesso: false, erro: 'Firebase não inicializado' };
-            }
-
-            try {
-                comanda.dataCriacao = firebase.firestore.FieldValue.serverTimestamp();
-                comanda.ultimaAtualizacao = firebase.firestore.FieldValue.serverTimestamp();
-
-                const docRef = await db.collection('comandas').add(comanda);
-                comanda.firebaseId = docRef.id;
-
-                if (syncStatus) {
-                    syncStatus.textContent = '✓ Sincronizado';
-                    syncStatus.className = 'sync-status sync-success';
-                    setTimeout(() => { syncStatus.classList.add('hidden'); }, 3000);
-                }
-                return { sucesso: true, id: docRef.id };
-            } catch (error) {
-                console.error('Erro ao salvar comanda no Firebase:', error);
-                if (syncStatus) {
-                    syncStatus.textContent = '✗ Erro';
-                    syncStatus.className = 'sync-status sync-error';
-                    setTimeout(() => { syncStatus.classList.add('hidden'); }, 3000);
-                }
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function salvarVendaFirebase(venda) {
-            if (!db) return { sucesso: false, erro: 'Firebase não inicializado' };
-            try {
-                venda.dataCriacao = firebase.firestore.FieldValue.serverTimestamp();
-                venda.dataVenda = new Date().toISOString();
-
-                const docRef = await db.collection('vendas').add(venda);
-                venda.firebaseId = docRef.id;
-
-                console.log('Venda salva no Firebase:', docRef.id);
-                return { sucesso: true, id: docRef.id };
-            } catch (error) {
-                console.error('Erro ao salvar venda no Firebase:', error);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        async function atualizarComandaFirebase(comandaId, itens, status) {
-            if (!db) return { sucesso: false, erro: 'Firebase não inicializado' };
-            try {
-                await db.collection('comandas').doc(comandaId).update({
-                    itens: itens,
-                    status: status,
-                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log('Comanda atualizada no Firebase:', comandaId);
-                return { sucesso: true };
-            } catch (error) {
-                console.error('Erro ao atualizar comanda no Firebase:', error);
-                return { sucesso: false, erro: error.message };
-            }
-        }
-
-        // CORREÇÃO PRINCIPAL: Função fecharComanda (mantida sua lógica)
-        async function fecharComanda() {
-            if (!formaPagamento) {
-                alert('Por favor, selecione uma forma de pagamento.');
-                return;
-            }
-
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[comandaAtual];
-
-            if (!comanda) {
-                alert('Erro: Comanda não encontrada.');
-                return;
-            }
-
-            const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-            const totalFinal = totalComDesconto > 0 ? totalComDesconto : total;
-
-            const venda = {
-                comandaId: comanda.id,
-                cliente: comanda.cliente,
-                itens: [...comanda.itens],
-                total: total,
-                desconto: valorDesconto,
-                totalFinal: totalFinal,
-                formaPagamento: formaPagamento,
-                numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 1,
-                data: new Date().toISOString()
-            };
-
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            vendas.push(venda);
-            localStorage.setItem('vendas', JSON.stringify(vendas));
-
-            // Salvar venda no Firebase (se possível)
-            try { await salvarVendaFirebase(venda); } catch (e) { console.warn(e); }
-
-            // Remover comanda
-            comandas.splice(comandaAtual, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-
-            // Fechar modal de pagamento
-            document.getElementById('modal-pagamento').style.display = 'none';
-
-            // MOSTRAR NOTA FISCAL AUTOMATICAMENTE
-            vendaAtual = venda;
-            gerarNotaFiscal(venda);
-
-            carregarComandas();
-            atualizarDashboard();
-
-            // Resetar variáveis
-            valorDesconto = 0;
-            totalComDesconto = 0;
-            numeroParcelas = 1;
-            formaPagamento = null;
-        }
-
-        // Gerar nota fiscal (mantida)
-        function gerarNotaFiscal(venda) {
-            const data = new Date(venda.data);
-            const dataFormatada = data.toLocaleDateString('pt-BR');
-            const horaFormatada = data.toLocaleTimeString('pt-BR');
-
-            const modalNotaFiscal = document.getElementById('modal-nota-fiscal');
-            const conteudoNotaFiscal = document.getElementById('conteudo-nota-fiscal');
-
-            let conteudoHTML = `
-                <div class="nota-header">
-                    <h2>COIOTE BBQ</h2>
-                    <h3>NOTA FISCAL</h3>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <p><strong>Data:</strong> ${dataFormatada} ${horaFormatada}</p>
-                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                    <p><strong>Cliente:</strong> ${venda.cliente || 'Consumidor'}</p>
-                </div>
-
-                <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">
-                    <h4>ITENS:</h4>
-            `;
-
-            venda.itens.forEach(item => {
-                const totalItem = item.preco * item.quantidade;
-                conteudoHTML += `
-                    <div class="nota-item">
-                        <div>${item.quantidade}x ${item.nome}</div>
-                        <div>R$ ${totalItem.toFixed(2)}</div>
-                    </div>
-                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
-                        R$ ${item.preco.toFixed(2)} un.
-                    </div>
-                `;
-            });
-
-            conteudoHTML += `
-                </div>
-
-                <div class="nota-total">
-                    <div class="nota-item">
-                        <div>SUBTOTAL:</div>
-                        <div>R$ ${venda.total.toFixed(2)}</div>
-                    </div>
-            `;
-
-            if (venda.desconto > 0) {
-                conteudoHTML += `
-                    <div class="nota-item">
-                        <div>DESCONTO:</div>
-                        <div>- R$ ${venda.desconto.toFixed(2)}</div>
-                    </div>
-                `;
-            }
-
-            conteudoHTML += `
-                    <div class="nota-item" style="font-size: 18px;">
-                        <div><strong>TOTAL:</strong></div>
-                        <div><strong>R$ ${venda.totalFinal.toFixed(2)}</strong></div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <p><strong>FORMA DE PAGAMENTO:</strong> ${venda.formaPagamento.toUpperCase()}</p>
-            `;
-
-            if (venda.formaPagamento === 'credito' && venda.numeroParcelas > 1) {
-                const valorParcela = venda.totalFinal / venda.numeroParcelas;
-                conteudoHTML += `<p><strong>PARCELAS:</strong> ${venda.numeroParcelas}x de R$ ${valorParcela.toFixed(2)}</p>`;
-            }
-
-            conteudoHTML += `
-                </div>
-
-                <div class="nota-footer">
-                    <p>Obrigado pela preferência!</p>
-                    <p>Volte sempre ao Coiote BBQ!</p>
-                </div>
-            `;
-
-            conteudoNotaFiscal.innerHTML = conteudoHTML;
-            modalNotaFiscal.style.display = 'flex';
-
-            // Configurar eventos dos botões da nota fiscal
-            document.getElementById('imprimir-nota-fiscal').onclick = () => imprimirNotaFiscal(venda);
-            document.getElementById('baixar-nota-fiscal').onclick = () => baixarNotaFiscalCliente(venda);
-            document.getElementById('fechar-nota-fiscal').onclick = () => {
-                modalNotaFiscal.style.display = 'none';
-            };
-
-            // Fechar modal com o X
-            const closeBtn = document.getElementById('close-modal-nota');
-            if (closeBtn) closeBtn.onclick = () => { modalNotaFiscal.style.display = 'none'; };
-        }
-
-        function imprimirNotaFiscal(venda) {
-            const data = new Date(venda.data);
-            const dataFormatada = data.toLocaleDateString('pt-BR');
-            const horaFormatada = data.toLocaleTimeString('pt-BR');
-
-            let conteudoImpressao = `
-                <html>
-                <head>
-                    <title>Nota Fiscal - Coiote BBQ</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-                        .item { margin: 5px 0; }
-                        .total { border-top: 1px solid #000; padding-top: 10px; margin-top: 15px; font-weight: bold; }
-                        .footer { text-align: center; margin-top: 20px; font-size: 12px; }
-                        @media print {
-                            body { margin: 0; }
-                            .no-print { display: none; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h2>COIOTE BBQ</h2>
-                        <h3>NOTA FISCAL</h3>
-                    </div>
-                    <p><strong>Data:</strong> ${dataFormatada} ${horaFormatada}</p>
-                    <p><strong>Comanda:</strong> #${venda.comandaId}</p>
-                    <p><strong>Cliente:</strong> ${venda.cliente || 'Consumidor'}</p>
-                    <hr>
-                    <h4>ITENS:</h4>
-            `;
-
-            venda.itens.forEach(item => {
-                const totalItem = item.preco * item.quantidade;
-                conteudoImpressao += `
-                    <div class="item">
-                        ${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${totalItem.toFixed(2)}
-                    </div>
-                `;
-            });
-
-            conteudoImpressao += `
-                    <div class="total">
-                        <p>SUBTOTAL: R$ ${venda.total.toFixed(2)}</p>
-                        <p>DESCONTO: R$ ${venda.desconto ? venda.desconto.toFixed(2) : '0,00'}</p>
-                        <p>TOTAL: R$ ${venda.totalFinal.toFixed(2)}</p>
-                    </div>
-                    <p><strong>FORMA DE PAGAMENTO:</strong> ${venda.formaPagamento.toUpperCase()}</p>
-            `;
-
-            if (venda.formaPagamento === 'credito' && venda.numeroParcelas > 1) {
-                const valorParcela = venda.totalFinal / venda.numeroParcelas;
-                conteudoImpressao += `<p><strong>PARCELAS:</strong> ${venda.numeroParcelas}x de R$ ${valorParcela.toFixed(2)}</p>`;
-            }
-
-            conteudoImpressao += `
-                    <div class="footer">
-                        <p>Obrigado pela preferência!</p>
-                        <p>Volte sempre ao Coiote BBQ!</p>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            const janelaImpressao = window.open('', '_blank');
-            janelaImpressao.document.write(conteudoImpressao);
-            janelaImpressao.document.close();
-            janelaImpressao.print();
-        }
-
-        function baixarNotaFiscalCliente(venda) {
-            const data = new Date(venda.data);
-            const dataFormatada = data.toLocaleDateString('pt-BR');
-
-            let conteudoNota = `
-                <html>
-                <head>
-                    <title>Nota Fiscal - Coiote BBQ</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-                        .item { margin: 5px 0; }
-                        .total { border-top: 1px solid #000; padding-top: 10px; margin-top: 15px; font-weight: bold; }
-                        .footer { text-align: center; margin-top: 20px; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h2>COIOTE BBQ</h2>
-                        <h3>NOTA FISCAL</h3>
-                    </div>
-                    <p><strong>Data:</strong> ${dataFormatada}</p>
-                    <hr>
-                    <h4>ITENS:</h4>
-            `;
-
-            venda.itens.forEach(item => {
-                const totalItem = item.preco * item.quantidade;
-                conteudoNota += `
-                    <div class="item">
-                        ${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2)} = R$ ${totalItem.toFixed(2)}
-                    </div>
-                `;
-            });
-
-            conteudoNota += `
-                    <div class="total">
-                        <p>SUBTOTAL: R$ ${venda.total.toFixed(2)}</p>
-                        <p>DESCONTO: R$ ${venda.desconto ? venda.desconto.toFixed(2) : '0,00'}</p>
-                        <p>TOTAL: R$ ${venda.totalFinal.toFixed(2)}</p>
-                    </div>
-                    <p><strong>FORMA DE PAGAMENTO:</strong> ${venda.formaPagamento.toUpperCase()}</p>
-            `;
-
-            if (venda.formaPagamento === 'credito' && venda.numeroParcelas > 1) {
-                const valorParcela = venda.totalFinal / venda.numeroParcelas;
-                conteudoNota += `<p><strong>PARCELAS:</strong> ${venda.numeroParcelas}x de R$ ${valorParcela.toFixed(2)}</p>`;
-            }
-
-            conteudoNota += `
-                    <div class="footer">
-                        <p>Obrigado pela preferência!</p>
-                        <p>Volte sempre ao Coiote BBQ!</p>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            const blob = new Blob([conteudoNota], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `nota_fiscal_${venda.comandaId}_${dataFormatada.replace(/\//g, '-')}.html`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            alert('Nota fiscal baixada com sucesso!');
-        }
-
-        // ========== FUNÇÕES EXISTENTES DO SISTEMA ==========
-
-        // Sistema de navegação
-        function setupNavigation() {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    // Atualizar navegação ativa
-                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Mostrar seção correspondente
-                    const sectionId = this.getAttribute('data-section');
-                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                    const target = document.getElementById(sectionId);
-                    if (target) target.classList.add('active');
-
-                    // Fechar menu mobile se estiver aberto
-                    document.getElementById('navMenu').classList.remove('show');
-
-                    // Atualizar dados específicos da seção
-                    if (sectionId === 'dashboard') {
-                        if (typeof atualizarDashboard === 'function') atualizarDashboard();
-                        if (typeof carregarFiltrosProdutos === 'function') carregarFiltrosProdutos();
-                    } else if (sectionId === 'comandas') {
-                        if (typeof carregarComandas === 'function') carregarComandas();
-                    } else if (sectionId === 'produtos') {
-                        if (typeof carregarProdutos === 'function') carregarProdutos();
-                    } else if (sectionId === 'relatorios') {
-                        if (typeof carregarRelatorios === 'function') carregarRelatorios();
-                    } else if (sectionId === 'notas-fiscais') {
-                        if (typeof carregarNotasFiscais === 'function') carregarNotasFiscais();
-                    }
-                });
-            });
-
-            // Menu mobile toggle
-            const toggle = document.getElementById('menuToggle');
-            if (toggle) {
-                toggle.addEventListener('click', function() {
-                    document.getElementById('navMenu').classList.toggle('show');
-                });
-            }
-        }
-
-        // Funções para gerenciar produtos
-        function carregarProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const listaProdutos = document.getElementById('lista-produtos');
-
-            listaProdutos.innerHTML = '';
-
-            if (produtos.length === 0) {
-                listaProdutos.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto cadastrado</td></tr>';
-                return;
-            }
-
-            produtos.forEach((produto, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${produto.nome}</td>
-                    <td>${produto.categoria}</td>
-                    <td>R$ ${produto.preco.toFixed(2)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-warning" onclick="editarProduto(${index})">Editar</button>
-                            <button class="btn btn-danger" onclick="excluirProduto(${index})">Excluir</button>
-                        </div>
-                    </td>
-                `;
-                listaProdutos.appendChild(tr);
-            });
-        }
-
-        function carregarFiltrosProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const filtroProduto = document.getElementById('filtro-produto');
-
-            // Limpar opções existentes (mantendo a primeira)
-            while (filtroProduto.children.length > 1) {
-                filtroProduto.removeChild(filtroProduto.lastChild);
-            }
-
-            // Adicionar produtos
-            produtos.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = produto.id;
-                option.textContent = produto.nome;
-                filtroProduto.appendChild(option);
-            });
-        }
-
-        async function adicionarProduto() {
-            const nome = document.getElementById('nome-produto').value;
-            const categoria = document.getElementById('categoria').value;
-            const preco = parseFloat(document.getElementById('preco').value);
-            const descricao = document.getElementById('descricao').value;
-
-            if (!nome || !categoria || !preco) {
-                mostrarAlerta('produto-error', 'Por favor, preencha todos os campos obrigatórios.');
-                return;
-            }
-
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-
-            if (produtoEmEdicao !== null) {
-                // Modo edição - atualizar produto existente
-                produtos[produtoEmEdicao] = {
-                    ...produtos[produtoEmEdicao],
-                    nome,
-                    categoria,
-                    preco,
-                    descricao
-                };
-
-                mostrarAlerta('produto-success', 'Produto atualizado com sucesso!');
-                cancelarEdicao();
-            } else {
-                // Modo adição - adicionar novo produto
-                const novoProduto = {
-                    nome,
-                    categoria,
-                    preco,
-                    descricao,
-                    id: Date.now()
-                };
-
-                produtos.push(novoProduto);
-                mostrarAlerta('produto-success', 'Produto cadastrado com sucesso!');
-
-                // Salvar no Firebase (não bloqueante)
-                salvarProdutoFirebase(novoProduto).catch(() => {});
-            }
-
-            localStorage.setItem('produtos', JSON.stringify(produtos));
-
-            // Limpar formulário
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('categoria').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('descricao').value = '';
-
-            carregarProdutos();
-            carregarFiltrosProdutos();
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
-
-        function editarProduto(index) {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const produto = produtos[index];
-
-            // Preencher formulário com dados do produto
-            document.getElementById('nome-produto').value = produto.nome;
-            document.getElementById('categoria').value = produto.categoria;
-            document.getElementById('preco').value = produto.preco;
-            document.getElementById('descricao').value = produto.descricao || '';
-
-            // Alterar para modo edição
-            produtoEmEdicao = index;
-            document.getElementById('adicionar-produto').textContent = 'Atualizar Produto';
-            document.getElementById('cancelar-edicao').classList.remove('hidden');
-
-            // Rolar para o formulário
-            document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function cancelarEdicao() {
-            // Limpar formulário
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('categoria').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('descricao').value = '';
-
-            // Voltar para modo adição
-            produtoEmEdicao = null;
-            document.getElementById('adicionar-produto').textContent = 'Adicionar Produto';
-            document.getElementById('cancelar-edicao').classList.add('hidden');
-        }
-
-        function excluirProduto(index) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
-                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-                produtos.splice(index, 1);
-                localStorage.setItem('produtos', JSON.stringify(produtos));
-                carregarProdutos();
-                carregarFiltrosProdutos();
-                if (typeof atualizarDashboard === 'function') atualizarDashboard();
-
-                // Se estava editando o produto excluído, cancelar a edição
-                if (produtoEmEdicao === index) {
-                    cancelarEdicao();
-                }
-            }
-        }
-
-        // Funções para gerenciar comandas
-        function carregarComandas() {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const listaComandas = document.getElementById('comandas-lista');
-
-            listaComandas.innerHTML = '';
-
-            if (comandas.length === 0) {
-                listaComandas.innerHTML = '<p>Nenhuma comanda ativa</p>';
-                return;
-            }
-
-            comandas.forEach((comanda, index) => {
-                const total = comanda.itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `
-                    <h3>Comanda #${comanda.id} - ${comanda.cliente || 'Cliente não informado'}</h3>
-                    <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
-                    <p><strong>Itens:</strong> ${comanda.itens.length}</p>
-                    <p><strong>Status:</strong> <span class="badge badge-success">Ativa</span></p>
-                    <button class="btn btn-primary" onclick="abrirModalComanda(${index})">Ver/Editar</button>
-                `;
-                listaComandas.appendChild(div);
-            });
-        }
-
-        async function criarComanda() {
-            const cliente = document.getElementById('cliente').value;
-
-            if (!cliente) {
-                mostrarAlerta('comanda-error', 'Por favor, informe o nome do cliente.');
-                return;
-            }
-
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const id = gerarIdComanda();
-
-            const novaComanda = {
-                id: id,
-                cliente: cliente,
-                itens: [],
+        localStorage.setItem('produtos', JSON.stringify(produtosExemplo));
+    }
+
+    if (!localStorage.getItem('comandas')) {
+        const comandasExemplo = [
+            {
+                id: 1001,
+                cliente: 'João',
+                itens: [
+                    { id: 1, nome: 'Espeto de Coração', preco: 12.50, quantidade: 2 },
+                    { id: 3, nome: 'Refrigerante 350ml', preco: 6.50, quantidade: 1 }
+                ],
                 dataAbertura: new Date().toISOString(),
                 status: 'ativa'
-            };
-
-            comandas.push(novaComanda);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-
-            // Salvar no Firebase (não bloqueante)
-            salvarComandaFirebase(novaComanda).catch(() => {});
-
-            // Limpar formulário
-            document.getElementById('cliente').value = '';
-
-            mostrarAlerta('comanda-success', 'Comanda criada com sucesso!');
-            carregarComandas();
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
-
-        function gerarIdComanda() {
-            let ultimoId = parseInt(localStorage.getItem('ultimoIdComanda')) || 0;
-            ultimoId++;
-            localStorage.setItem('ultimoIdComanda', ultimoId.toString());
-            return ultimoId;
-        }
-
-        function abrirModalComanda(index) {
-            const modal = document.getElementById('modal-comanda');
-            modal.style.display = 'flex';
-            comandaAtual = index;
-
-            // Resetar seleção
-            produtoSelecionado = null;
-            categoriaAtual = '';
-
-            // Criar botões de categoria
-            criarBotoesCategoria();
-
-            // Carregar produtos
-            carregarProdutosModal();
-
-            // Atualizar itens da comanda
-            atualizarItensComandaModal(index);
-
-            // Configurar eventos
-            document.getElementById('adicionar-item-comanda').onclick = () => adicionarItemComanda(index);
-            document.getElementById('fechar-comanda').onclick = () => abrirModalPagamento(index);
-            document.getElementById('cancelar-comanda').onclick = () => cancelarComanda(index);
-            document.getElementById('salvar-fechar-comanda').onclick = () => {
-                modal.style.display = 'none';
-                carregarComandas();
-                if (typeof atualizarDashboard === 'function') atualizarDashboard();
-            };
-        }
-
-        function criarBotoesCategoria() {
-            const container = document.getElementById('category-buttons');
-            container.innerHTML = '';
-
-            // Botão para mostrar todos
-            const btnTodos = document.createElement('button');
-            btnTodos.className = 'category-btn active';
-            btnTodos.textContent = 'Todos';
-            btnTodos.onclick = () => filtrarProdutosPorCategoria('');
-            container.appendChild(btnTodos);
-
-            // Botões para cada categoria
-            categorias.forEach(categoria => {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                btn.textContent = categoria;
-                btn.onclick = () => filtrarProdutosPorCategoria(categoria);
-                container.appendChild(btn);
-            });
-        }
-
-        function filtrarProdutosPorCategoria(categoria) {
-            categoriaAtual = categoria;
-
-            // Atualizar botões ativos
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Encontrar e ativar o botão correto
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                if (categoria === '' && btn.textContent === 'Todos') {
-                    btn.classList.add('active');
-                } else if (btn.textContent === categoria) {
-                    btn.classList.add('active');
-                }
-            });
-
-            // Recarregar produtos com filtro
-            carregarProdutosModal();
-        }
-
-        function carregarProdutosModal() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const container = document.getElementById('product-grid');
-            container.innerHTML = '';
-
-            // Filtrar produtos por categoria
-            let produtosFiltrados = produtos;
-            if (categoriaAtual) {
-                produtosFiltrados = produtos.filter(produto => produto.categoria === categoriaAtual);
             }
+        ];
+        localStorage.setItem('comandas', JSON.stringify(comandasExemplo));
+        localStorage.setItem('ultimoIdComanda', '1001');
+    }
 
-            if (produtosFiltrados.length === 0) {
-                container.innerHTML = '<p>Nenhum produto encontrado</p>';
-                return;
-            }
+    if (!localStorage.getItem('vendas')) {
+        localStorage.setItem('vendas', JSON.stringify([]));
+    }
+})();
+/* ================== Fim seed ================== */
 
-            produtosFiltrados.forEach(produto => {
-                const div = document.createElement('div');
-                div.className = 'product-item';
-                if (produtoSelecionado && produtoSelecionado.id === produto.id) {
-                    div.classList.add('selected');
-                }
+/* ----------------- Variáveis globais ----------------- */
+let produtoSelecionado = null;
+let categoriaAtual = '';
+let comandaAtual = null;
+let formaPagamento = null;
+let numeroParcelas = 1;
 
-                div.innerHTML = `
-                    <div class="product-name">${produto.nome}</div>
-                    <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
-                `;
+/* ----------------- Navegação ----------------- */
+function setupNavigation(){
+    document.querySelectorAll('.nav-link').forEach(link=>{
+        link.addEventListener('click', function(e){
+            e.preventDefault();
+            document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+            this.classList.add('active');
+            const sectionId = this.dataset.section;
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+            const target = document.getElementById(sectionId);
+            if (target) target.classList.add('active');
+            // atualizações por seção
+            if (sectionId==='dashboard') atualizarDashboard();
+            if (sectionId==='produtos') carregarProdutos();
+            if (sectionId==='comandas') carregarComandas();
+            if (sectionId==='relatorios') carregarRelatorios();
+            if (sectionId==='notas-fiscais') carregarNotasFiscais();
+            // fechar menu mobile
+            document.getElementById('navMenu').classList.remove('show');
+        });
+    });
+    const toggle = document.getElementById('menuToggle');
+    if (toggle) toggle.addEventListener('click', ()=> document.getElementById('navMenu').classList.toggle('show'));
+}
+setupNavigation();
 
-                div.onclick = () => {
-                    // Desselecionar produto anterior
-                    document.querySelectorAll('.product-item').forEach(item => {
-                        item.classList.remove('selected');
-                    });
+/* ----------------- Produtos ----------------- */
+function carregarProdutos(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const tbody = document.getElementById('lista-produtos');
+    tbody.innerHTML = '';
+    if (!produtos.length){
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum produto cadastrado</td></tr>';
+        document.getElementById('total-produtos').textContent = 0;
+        return;
+    }
+    produtos.forEach((p,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.nome}</td><td>${p.categoria}</td><td>R$ ${p.preco.toFixed(2)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning" onclick="editarProduto(${idx})">Editar</button>
+                    <button class="btn btn-danger" onclick="excluirProduto(${idx})">Excluir</button>
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('total-produtos').textContent = produtos.length;
+    carregarFiltrosProdutos();
+}
 
-                    // Selecionar produto atual
-                    div.classList.add('selected');
-                    produtoSelecionado = produto;
-                };
+function adicionarProduto(){
+    const nome = document.getElementById('nome-produto').value.trim();
+    const categoria = document.getElementById('categoria').value;
+    const preco = parseFloat(document.getElementById('preco').value);
+    if (!nome || !categoria || isNaN(preco)) return mostrarAlerta('produto-error','Preencha nome, categoria e preço.');
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const novo = { id: Date.now(), nome, categoria, preco, descricao: ''};
+    produtos.push(novo);
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    mostrarAlerta('produto-success','Produto adicionado');
+    document.getElementById('nome-produto').value=''; document.getElementById('preco').value='';
+    carregarProdutos();
+    atualizarDashboard();
+}
+document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
 
-                container.appendChild(div);
-            });
-        }
+function editarProduto(index){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const p = produtos[index];
+    if (!p) return;
+    document.getElementById('nome-produto').value = p.nome;
+    document.getElementById('categoria').value = p.categoria;
+    document.getElementById('preco').value = p.preco;
+    // when saving, we'll replace first match by id — simple approach for demo:
+    const salvarBtn = document.getElementById('adicionar-produto');
+    salvarBtn.textContent = 'Salvar Alterações';
+    salvarBtn.onclick = function(){
+        p.nome = document.getElementById('nome-produto').value;
+        p.categoria = document.getElementById('categoria').value;
+        p.preco = parseFloat(document.getElementById('preco').value) || p.preco;
+        produtos[index] = p;
+        localStorage.setItem('produtos', JSON.stringify(produtos));
+        salvarBtn.textContent = 'Adicionar Produto';
+        salvarBtn.onclick = adicionarProduto;
+        document.getElementById('nome-produto').value=''; document.getElementById('preco').value='';
+        mostrarAlerta('produto-success','Produto atualizado');
+        carregarProdutos();
+        atualizarDashboard();
+    };
+}
 
-        function atualizarItensComandaModal(index) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
-            const container = document.getElementById('itens-comanda-modal');
-            const totalEl = document.getElementById('total-comanda-modal');
+function excluirProduto(index){
+    if (!confirm('Excluir produto?')) return;
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    produtos.splice(index,1);
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    carregarProdutos();
+    atualizarDashboard();
+}
 
-            container.innerHTML = '';
-            if (!comanda || (comanda.itens && comanda.itens.length === 0)) {
-                totalEl.textContent = 'Total: R$ 0,00';
-                container.innerHTML = '<p>Nenhum item na comanda</p>';
-                return;
-            }
+/* ----------------- Filtros & UI Auxiliares ----------------- */
+function carregarFiltrosProdutos(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const filtroProduto = document.getElementById('filtro-produto');
+    const filtroCategoria = document.getElementById('filtro-categoria');
+    // produto
+    filtroProduto.innerHTML = '<option value="">Todos os produtos</option>';
+    produtos.forEach(p => {
+        const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.nome; filtroProduto.appendChild(opt);
+    });
+    // categorias
+    const categorias = Array.from(new Set(produtos.map(p=>p.categoria))).filter(Boolean);
+    filtroCategoria.innerHTML = '<option value="">Todas as categorias</option>';
+    categorias.forEach(c => {
+        const opt = document.createElement('option'); opt.value = c; opt.textContent = c; filtroCategoria.appendChild(opt);
+    });
+}
 
-            let total = 0;
-            comanda.itens.forEach((item, idx) => {
-                const itemTotal = item.preco * item.quantidade;
-                total += itemTotal;
-                const div = document.createElement('div');
-                div.className = 'comanda-item';
-                div.innerHTML = `
-                    <div>
-                        <div><strong>${item.nome}</strong></div>
-                        <div style="font-size: 12px; color:#666;">R$ ${item.preco.toFixed(2)} - Qtde: ${item.quantidade}</div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning" onclick="diminuirQuantidade(${index}, ${idx})">-</button>
-                        <button class="btn btn-danger" onclick="removerItemComanda(${index}, ${idx})">Remover</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+/* ----------------- Comandas ----------------- */
+function carregarComandas(){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const lista = document.getElementById('comandas-lista');
+    lista.innerHTML = '';
+    if (!comandas.length) { lista.innerHTML = '<p>Nenhuma comanda ativa</p>'; return; }
+    comandas.forEach((c, idx) => {
+        const total = (c.itens||[]).reduce((s,i)=>s + (i.preco * i.quantidade),0);
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `<h3>Comanda #${c.id} - ${c.cliente||'Consumidor'}</h3>
+                         <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+                         <p><strong>Itens:</strong> ${c.itens.length}</p>
+                         <div style="display:flex;gap:8px;margin-top:8px">
+                            <button class="btn btn-primary" onclick="abrirModalComanda(${idx})">Ver/Editar</button>
+                         </div>`;
+        lista.appendChild(div);
+    });
+    atualizarDashboard();
+}
 
-            totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
-        }
+function criarComanda(){
+    const cliente = document.getElementById('cliente').value.trim();
+    if (!cliente) return mostrarAlerta('comanda-error','Informe o nome do cliente');
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    let ultimo = parseInt(localStorage.getItem('ultimoIdComanda')||'1000',10);
+    ultimo++;
+    const nova = { id: ultimo, cliente, itens: [], dataAbertura: new Date().toISOString(), status: 'ativa' };
+    comandas.push(nova);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    localStorage.setItem('ultimoIdComanda', String(ultimo));
+    document.getElementById('cliente').value='';
+    mostrarAlerta('comanda-success','Comanda criada');
+    carregarComandas();
+}
+document.getElementById('criar-comanda').addEventListener('click', criarComanda);
 
-        function adicionarItemComanda(index) {
-            if (!produtoSelecionado) {
-                alert('Selecione um produto antes de adicionar.');
-                return;
-            }
+/* ----------------- Modal Comanda / Produtos no Modal ----------------- */
+function abrirModalComanda(index){
+    const modal = document.getElementById('modal-comanda'); modal.style.display='flex';
+    comandaAtual = index;
+    produtoSelecionado = null; categoriaAtual = '';
+    criarBotoesCategoria();
+    carregarProdutosModal();
+    atualizarItensComandaModal(index);
+}
 
-            const quantidade = parseInt(document.getElementById('quantidade').value, 10) || 1;
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[index];
+document.getElementById('fechar-modal-comanda').addEventListener('click', ()=>{
+    document.getElementById('modal-comanda').style.display='none';
+});
 
-            if (!comanda) {
-                alert('Comanda não encontrada.');
-                return;
-            }
+function criarBotoesCategoria(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const container = document.getElementById('category-buttons'); container.innerHTML='';
+    const btnTodos = document.createElement('button'); btnTodos.className='category-btn active'; btnTodos.textContent='Todos';
+    btnTodos.onclick = ()=>{ filtrarProdutosPorCategoria(''); };
+    container.appendChild(btnTodos);
+    const categorias = Array.from(new Set(produtos.map(p=>p.categoria))).filter(Boolean);
+    categorias.forEach(c=>{
+        const btn = document.createElement('button'); btn.className='category-btn'; btn.textContent = c;
+        btn.onclick = ()=> filtrarProdutosPorCategoria(c);
+        container.appendChild(btn);
+    });
+}
 
-            // Procurar se item já existe
-            const existente = comanda.itens.find(i => i.id === produtoSelecionado.id);
-            if (existente) {
-                existente.quantidade += quantidade;
-            } else {
-                comanda.itens.push({
-                    id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
-                    preco: produtoSelecionado.preco,
-                    quantidade: quantidade
-                });
-            }
+function filtrarProdutosPorCategoria(cat){
+    categoriaAtual = cat;
+    document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+    Array.from(document.querySelectorAll('.category-btn')).find(b=> (cat==='' && b.textContent==='Todos') || b.textContent===cat ).classList.add('active');
+    carregarProdutosModal();
+}
 
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            atualizarItensComandaModal(index);
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
+function carregarProdutosModal(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const container = document.getElementById('product-grid'); container.innerHTML='';
+    let lista = produtos;
+    if (categoriaAtual) lista = produtos.filter(p=>p.categoria===categoriaAtual);
+    if (!lista.length) { container.innerHTML='<p>Nenhum produto</p>'; return; }
+    lista.forEach(p=>{
+        const div = document.createElement('div'); div.className='product-item';
+        div.innerHTML = `<div style="font-weight:700">${p.nome}</div><div style="margin-top:6px;color:var(--success)">R$ ${p.preco.toFixed(2)}</div>`;
+        div.onclick = ()=>{
+            document.querySelectorAll('.product-item').forEach(x=>x.classList.remove('selected'));
+            div.classList.add('selected'); produtoSelecionado = p;
+        };
+        container.appendChild(div);
+    });
+}
 
-        function diminuirQuantidade(indexComanda, indexItem) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[indexComanda];
-            if (!comanda) return;
-            const item = comanda.itens[indexItem];
-            if (!item) return;
+function adicionarItemComanda(index){
+    if (!produtoSelecionado) return alert('Selecione um produto');
+    const quantidade = parseInt(document.getElementById('quantidade').value,10) || 1;
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[index];
+    if (!comanda) return alert('Comanda não encontrada');
+    const existente = comanda.itens.find(i=>i.id===produtoSelecionado.id);
+    if (existente) existente.quantidade += quantidade;
+    else comanda.itens.push({ id: produtoSelecionado.id, nome: produtoSelecionado.nome, preco: produtoSelecionado.preco, quantidade });
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(index);
+    carregarComandas();
+    atualizarDashboard();
+}
+document.getElementById('adicionar-item-comanda').addEventListener('click', ()=> adicionarItemComanda(comandaAtual));
 
-            item.quantidade = Math.max(1, item.quantidade - 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            atualizarItensComandaModal(indexComanda);
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
+function atualizarItensComandaModal(index){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[index];
+    const container = document.getElementById('itens-comanda-modal');
+    const totalEl = document.getElementById('total-comanda-modal');
+    container.innerHTML = '';
+    if (!comanda || !comanda.itens.length){ container.innerHTML = '<p>Nenhum item</p>'; totalEl.textContent='Total: R$ 0,00'; return; }
+    let total = 0;
+    comanda.itens.forEach((it, idx)=>{
+        const itemTotal = it.preco * it.quantidade; total += itemTotal;
+        const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.padding='8px 0';
+        div.innerHTML = `<div><strong>${it.nome}</strong><div style="font-size:12px;color:#666">R$ ${it.preco.toFixed(2)} • Qtde: ${it.quantidade}</div></div>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-warning" onclick="diminuirQuantidade(${index},${idx})">-</button>
+                <button class="btn btn-danger" onclick="removerItemComanda(${index},${idx})">Remover</button>
+            </div>`;
+        container.appendChild(div);
+    });
+    totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
+}
 
-        function removerItemComanda(indexComanda, indexItem) {
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            const comanda = comandas[indexComanda];
-            if (!comanda) return;
+function diminuirQuantidade(idxCom, idxItem){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
+    if (!com) return; const item = com.itens[idxItem]; if (!item) return;
+    item.quantidade = Math.max(1, item.quantidade - 1);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
+}
+function removerItemComanda(idxCom, idxItem){
+    if (!confirm('Remover item?')) return;
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
+    if (!com) return;
+    com.itens.splice(idxItem,1); localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
+}
 
-            comanda.itens.splice(indexItem, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            atualizarItensComandaModal(indexComanda);
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
+/* ----------------- Pagamento / Fechar comanda ----------------- */
+function abrirModalPagamento(){
+    document.getElementById('modal-pagamento').style.display='flex';
+}
+document.getElementById('salvar-fechar-comanda').addEventListener('click', ()=>{
+    document.getElementById('modal-comanda').style.display='none';
+});
 
-        function cancelarComanda(index) {
-            if (!confirm('Cancelar comanda?')) return;
-            const comandas = JSON.parse(localStorage.getItem('comandas')) || [];
-            comandas.splice(index, 1);
-            localStorage.setItem('comandas', JSON.stringify(comandas));
-            document.getElementById('modal-comanda').style.display = 'none';
-            carregarComandas();
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        }
+document.getElementById('confirmar-pagamento').addEventListener('click', fecharComanda);
+document.getElementById('cancelar-pagamento').addEventListener('click', ()=> document.getElementById('modal-pagamento').style.display='none');
 
-        // Funções de relatórios / notas - minimal placeholders (podem ser aprimoradas)
-        function carregarRelatorios() {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const tbody = document.getElementById('relatorio-vendas');
-            tbody.innerHTML = '';
-            if (vendas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center">Nenhuma venda registrada</td></tr>';
-                return;
-            }
-            vendas.forEach((venda, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${new Date(venda.data).toLocaleDateString()}</td>
-                    <td>${venda.comandaId}</td>
-                    <td>${venda.cliente || 'Consumidor'}</td>
-                    <td>R$ ${venda.total.toFixed(2)}</td>
-                    <td>R$ ${venda.desconto ? venda.desconto.toFixed(2) : '0,00'}</td>
-                    <td>R$ ${venda.totalFinal.toFixed(2)}</td>
-                    <td>${venda.formaPagamento}</td>
-                    <td>${venda.numeroParcelas || 1}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-primary" onclick="verVenda(${idx})">Ver</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+function fecharComanda(){
+    if (comandaAtual===null) return alert('Abra a comanda antes de fechar');
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[comandaAtual];
+    if (!comanda) return alert('Comanda inválida');
+    const total = (comanda.itens||[]).reduce((s,i)=>s + i.preco * i.quantidade, 0);
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const venda = { comandaId: comanda.id, cliente: comanda.cliente, itens: comanda.itens, total, desconto:0, totalFinal: total, formaPagamento: formaPagamento||'dinheiro', data: new Date().toISOString() };
+    vendas.push(venda);
+    localStorage.setItem('vendas', JSON.stringify(vendas));
+    // remover comanda
+    comandas.splice(comandaAtual,1);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    document.getElementById('modal-pagamento').style.display='none';
+    document.getElementById('modal-comanda').style.display='none';
+    gerarNotaFiscal(venda);
+    carregarComandas(); carregarRelatorios(); atualizarDashboard(); carregarNotasFiscais();
+    comandaAtual = null; formaPagamento = null;
+}
 
-        function verVenda(index) {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const venda = vendas[index];
-            if (!venda) return;
-            const modal = document.getElementById('modal-venda');
-            const detalhes = document.getElementById('detalhes-venda');
+/* ----------------- Nota fiscal ----------------- */
+function gerarNotaFiscal(venda){
+    const modal = document.getElementById('modal-nota-fiscal'); modal.style.display='flex';
+    const conteudo = document.getElementById('conteudo-nota-fiscal');
+    const data = new Date(venda.data).toLocaleString();
+    let html = `<div style="padding:8px"><h3>COIOTE BBQ — NOTA FISCAL</h3><p><strong>Data:</strong> ${data}</p><p><strong>Comanda:</strong> #${venda.comandaId}</p><p><strong>Cliente:</strong> ${venda.cliente||'Consumidor'}</p><hr>`;
+    venda.itens.forEach(i => { html += `<div style="display:flex;justify-content:space-between"><div>${i.quantidade}x ${i.nome}</div><div>R$ ${(i.preco*i.quantidade).toFixed(2)}</div></div>`});
+    html += `<hr><div style="display:flex;justify-content:space-between;font-weight:700"><div>TOTAL</div><div>R$ ${venda.totalFinal.toFixed(2)}</div></div></div>`;
+    conteudo.innerHTML = html;
+}
+document.getElementById('close-modal-nota').addEventListener('click', ()=> document.getElementById('modal-nota-fiscal').style.display='none');
 
-            let html = `<h4>Venda #${venda.comandaId}</h4><div>`;
-            venda.itens.forEach(i => {
-                html += `<div>${i.quantidade}x ${i.nome} - R$ ${i.preco.toFixed(2)}</div>`;
-            });
-            html += `</div><div><strong>Total:</strong> R$ ${venda.totalFinal.toFixed(2)}</div>`;
-            detalhes.innerHTML = html;
-            modal.style.display = 'flex';
-        }
+/* ----------------- Relatórios / Notas ----------------- */
+function carregarRelatorios(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const tbody = document.getElementById('relatorio-vendas'); tbody.innerHTML='';
+    if (!vendas.length){ tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma venda</td></tr>'; return; }
+    vendas.forEach((v,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(v.data).toLocaleString()}</td><td>${v.comandaId}</td><td>${v.cliente||'Consumidor'}</td><td>R$ ${v.totalFinal.toFixed(2)}</td>
+            <td><button class="btn btn-primary" onclick="gerarNotaFiscalIndex(${idx})">Ver</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+function gerarNotaFiscalIndex(index){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[]; const v = vendas[index]; if (v) gerarNotaFiscal(v);
+}
+function carregarNotasFiscais(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const container = document.getElementById('lista-notas-fiscais'); container.innerHTML='';
+    if (!vendas.length) { container.innerHTML = '<p>Nenhuma nota gerada</p>'; return; }
+    vendas.forEach(v=>{
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between"><div>Comanda #${v.comandaId} - ${v.cliente}</div><div>R$ ${v.totalFinal.toFixed(2)}</div></div>`;
+        container.appendChild(div);
+    });
+}
 
-        // Notas fiscais
-        function carregarNotasFiscais() {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const container = document.getElementById('lista-notas-fiscais');
-            container.innerHTML = '';
-            vendas.forEach((venda, idx) => {
-                const div = document.createElement('div');
-                div.className = 'nota-fiscal-item';
-                div.innerHTML = `
-                    <div class="nota-fiscal-header">
-                        <div>Comanda: #${venda.comandaId} - Cliente: ${venda.cliente || 'Consumidor'}</div>
-                        <div>R$ ${venda.totalFinal.toFixed(2)}</div>
-                    </div>
-                    <div class="nota-fiscal-actions">
-                        <button class="btn btn-primary" onclick="abrirNotaFiscal(${idx})">Visualizar</button>
-                        <button class="btn btn-success" onclick="baixarNotaFiscalCliente(${JSON.stringify(venda).replace(/"/g,'&quot;')})">Baixar</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
+/* ----------------- Dashboard update ----------------- */
+function atualizarDashboard(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    // total vendas
+    const totalVendido = vendas.reduce((s,v)=>s + (v.totalFinal||v.total||0),0);
+    document.getElementById('total-vendas').textContent = `R$ ${totalVendido.toFixed(2)}`;
+    // total comandas
+    document.getElementById('total-comandas').textContent = comandas.length;
+    // total produtos
+    document.getElementById('total-produtos').textContent = produtos.length;
+    // vendas hoje (simples)
+    const hoje = new Date().toLocaleDateString();
+    const vendasHoje = vendas.filter(v => new Date(v.data).toLocaleDateString() === hoje).length;
+    document.getElementById('vendas-hoje').textContent = vendasHoje;
+    // carregar comandas na dashboard
+    const listaDash = document.getElementById('comandas-lista-dashboard'); listaDash.innerHTML='';
+    if (!comandas.length) listaDash.innerHTML = '<p>Nenhuma comanda ativa</p>';
+    comandas.forEach((c, idx) => {
+        const total = (c.itens||[]).reduce((s,it)=> s + it.preco*it.quantidade,0);
+        const el = document.createElement('div'); el.className='card'; el.style.marginBottom='8px';
+        el.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>#${c.id}</strong> ${c.cliente||''}</div><div>R$ ${total.toFixed(2)}</div></div>
+                        <div style="margin-top:6px"><button class="btn btn-primary" onclick="abrirModalComanda(${idx})">Abrir</button></div>`;
+        listaDash.appendChild(el);
+    });
+    // produtos mais vendidos (simples: acumula por nome nas vendas)
+    const mapa = {};
+    vendas.forEach(v=> v.itens.forEach(i=> { mapa[i.nome] = (mapa[i.nome]||0) + i.quantidade; }));
+    const arr = Object.entries(mapa).map(([nome,qtd])=>({nome,qtd}));
+    arr.sort((a,b)=>b.qtd-a.qtd);
+    const tbody = document.getElementById('produtos-mais-vendidos'); tbody.innerHTML='';
+    if (!arr.length) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Sem vendas ainda</td></tr>';
+    arr.slice(0,6).forEach(item=>{
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${item.nome}</td><td>${item.qtd}</td><td>R$ ${(item.qtd * ( (JSON.parse(localStorage.getItem('produtos')||'[]').find(p=>p.nome===item.nome)||{preco:0}).preco )).toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+    });
+}
 
-        function abrirNotaFiscal(index) {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const venda = vendas[index];
-            if (!venda) return;
-            gerarNotaFiscal(venda);
-        }
+/* ----------------- Utilitários ----------------- */
+function mostrarAlerta(id, msg){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg; el.classList.remove('hidden');
+    setTimeout(()=> el.classList.add('hidden'), 2500);
+}
 
-        // Utilitários
-        function mostrarAlerta(id, mensagem) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.textContent = mensagem;
-            el.classList.remove('hidden');
-            setTimeout(() => {
-                el.classList.add('hidden');
-            }, 3000);
-        }
+/* ----------------- Inicialização ----------------- */
+(function init(){
+    carregarProdutos();
+    carregarFiltrosProdutos();
+    carregarComandas();
+    carregarRelatorios();
+    carregarNotasFiscais();
+    atualizarDashboard();
 
-        // ---------- Inicialização e vinculação de eventos finais ----------
-        (function init() {
-            // Ativar navegação e botão mobile
-            try { setupNavigation(); } catch (e) { console.error(e); }
+    // selecionar forma pagamento UI
+    document.querySelectorAll('.payment-option').forEach(el=>{
+        el.style.cursor='pointer';
+        el.addEventListener('click', ()=>{
+            document.querySelectorAll('.payment-option').forEach(x=>x.style.border='1px solid #ddd');
+            el.style.border = '2px solid var(--secondary)';
+            formaPagamento = el.dataset.payment;
+        });
+    });
 
-            // Vincular botões principais
-            const btnCriarComanda = document.getElementById('criar-comanda');
-            if (btnCriarComanda) btnCriarComanda.addEventListener('click', criarComanda);
+    // aplicar filtros (simples: atualiza dashboard)
+    document.getElementById('aplicar-filtros').addEventListener('click', ()=>{
+        filtros = {
+            produto: document.getElementById('filtro-produto').value,
+            categoria: document.getElementById('filtro-categoria').value,
+            dataInicio: document.getElementById('filtro-data-inicio').value,
+            dataFim: document.getElementById('filtro-data-fim').value
+        };
+        atualizarDashboard();
+    });
 
-            const btnAdicionarProduto = document.getElementById('adicionar-produto');
-            if (btnAdicionarProduto) btnAdicionarProduto.addEventListener('click', adicionarProduto);
-
-            const btnCancelarEdicao = document.getElementById('cancelar-edicao');
-            if (btnCancelarEdicao) btnCancelarEdicao.addEventListener('click', cancelarEdicao);
-
-            const btnAplicarDesconto = document.getElementById('aplicar-desconto');
-            if (btnAplicarDesconto) btnAplicarDesconto.addEventListener('click', aplicarDesconto);
-
-            // Vincular opções de pagamento
-            document.querySelectorAll('.payment-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.payment-option').forEach(x => x.classList.remove('selected'));
-                    el.classList.add('selected');
-                    formaPagamento = el.getAttribute('data-payment');
-
-                    // Mostrar PIX se for PIX
-                    const pixContainer = document.getElementById('pix-code-container');
-                    if (pixContainer) {
-                        if (formaPagamento === 'pix') pixContainer.classList.remove('hidden');
-                        else pixContainer.classList.add('hidden');
-                    }
-
-                    // Parcelas
-                    toggleParcelasSection();
-                });
-            });
-
-            // Vincular seleção de parcelas
-            document.querySelectorAll('.parcela-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.parcela-option').forEach(x => x.classList.remove('selected'));
-                    el.classList.add('selected');
-                    numeroParcelas = parseInt(el.getAttribute('data-parcelas'), 10) || 1;
-                    atualizarInfoParcelas();
-                });
-            });
-
-            // Confirmar / cancelar pagamento
-            const btnConfirmarPagamento = document.getElementById('confirmar-pagamento');
-            if (btnConfirmarPagamento) btnConfirmarPagamento.addEventListener('click', fecharComanda);
-
-            const btnCancelarPagamento = document.getElementById('cancelar-pagamento');
-            if (btnCancelarPagamento) btnCancelarPagamento.addEventListener('click', () => {
-                document.getElementById('modal-pagamento').style.display = 'none';
-            });
-
-            // Fechar modais com "X"
-            const closeModalVenda = document.getElementById('close-modal-venda');
-            if (closeModalVenda) closeModalVenda.addEventListener('click', () => {
-                document.getElementById('modal-venda').style.display = 'none';
-            });
-
-            const closeModalPagamento = document.getElementById('close-modal-pagamento');
-            if (closeModalPagamento) closeModalPagamento.addEventListener('click', () => {
-                document.getElementById('modal-pagamento').style.display = 'none';
-            });
-
-            // Fechar nota fiscal
-            const closeNota = document.getElementById('close-modal-nota');
-            if (closeNota) closeNota.addEventListener('click', () => {
-                document.getElementById('modal-nota-fiscal').style.display = 'none';
-            });
-
-            // Inicializar exibições
-            if (typeof carregarProdutos === 'function') carregarProdutos();
-            if (typeof carregarComandas === 'function') carregarComandas();
-            if (typeof carregarFiltrosProdutos === 'function') carregarFiltrosProdutos();
-            if (typeof atualizarDashboard === 'function') atualizarDashboard();
-            if (typeof carregarRelatorios === 'function') carregarRelatorios();
-            if (typeof carregarNotasFiscais === 'function') carregarNotasFiscais();
-        })();
-    </script>
+})();
+</script>
 </body>
 </html>
