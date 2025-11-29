@@ -274,11 +274,11 @@
             <button class="close-btn" id="close-modal-pagamento">X</button>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-            <div class="payment-option" data-payment="dinheiro">Dinheiro</div>
-            <div class="payment-option" data-payment="pix">PIX</div>
-            <div class="payment-option" data-payment="debito">Débito</div>
-            <div class="payment-option" data-payment="credito">Crédito</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px" id="payment-options">
+            <div class="payment-option" data-payment="dinheiro" onclick="selecionarPagamento(this, 'dinheiro')">Dinheiro</div>
+            <div class="payment-option" data-payment="pix" onclick="selecionarPagamento(this, 'pix')">PIX</div>
+            <div class="payment-option" data-payment="debito" onclick="selecionarPagamento(this, 'debito')">Débito</div>
+            <div class="payment-option" data-payment="credito" onclick="selecionarPagamento(this, 'credito')">Crédito</div>
         </div>
 
         <div style="margin-top:12px;display:flex;gap:8px">
@@ -621,7 +621,7 @@ function atualizarItensComandaModal(index){
     totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
 }
 
-function diminuirQuantidade(idxCom, idxItem){
+window.diminuirQuantidade = function(idxCom, idxItem){
     const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
     if (!com) return; const item = com.itens[idxItem]; if (!item) return;
     item.quantidade = Math.max(1, item.quantidade - 1);
@@ -629,14 +629,14 @@ function diminuirQuantidade(idxCom, idxItem){
     atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
 }
 
-function aumentarQuantidade(idxCom, idxItem){
+window.aumentarQuantidade = function(idxCom, idxItem){
     const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
     if (!com) return; const item = com.itens[idxItem]; if (!item) return;
     item.quantidade += 1;
     localStorage.setItem('comandas', JSON.stringify(comandas));
     atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
 }
-function removerItemComanda(idxCom, idxItem){
+window.removerItemComanda = function(idxCom, idxItem){
     if (!confirm('Remover item?')) return;
     const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
     if (!com) return;
@@ -654,7 +654,13 @@ function abrirModalPagamento(){
     document.getElementById('modal-pagamento').style.display='flex';
 }
 
-function iniciarFechamentoComanda(index){
+window.selecionarPagamento = function(elemento, tipo){
+    document.querySelectorAll('.payment-option').forEach(x=>x.classList.remove('selected'));
+    elemento.classList.add('selected');
+    formaPagamento = tipo;
+}
+
+window.iniciarFechamentoComanda = function(index){
     comandaAtual = index;
     abrirModalPagamento();
 }
@@ -1004,15 +1010,6 @@ function atualizarDashboardComFiltros(){
     carregarRelatorios();
     carregarNotasFiscais();
     atualizarDashboard();
-
-    // Selecionar forma pagamento UI
-    document.querySelectorAll('.payment-option').forEach(el=>{
-        el.addEventListener('click', ()=>{
-            document.querySelectorAll('.payment-option').forEach(x=>x.classList.remove('selected'));
-            el.classList.add('selected');
-            formaPagamento = el.dataset.payment;
-        });
-    });
 
     // Aplicar filtros
     document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltros);
