@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sistema Restaurante — Demo</title>
+<style>
+    :root{
+        --primary:#2c3e50;
+        --secondary:#3498db;
+        --success:#27ae60;
+        --danger:#e74c3c;
+        --warning:#f39c12;
+        --light:#f5f7fa;
+        --card:#ffffff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Arial, sans-serif}
+    body{background:var(--light);color:#222;line-height:1.4}
+    header{background:var(--primary);color:#fff;padding:14px 0;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .container{max-width:1200px;margin:0 auto;padding:18px}
+    .header-content{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{font-weight:700;font-size:20px}
+    .menu-toggle{display:none;cursor:pointer}
+    .menu-toggle span{display:block;height:3px;width:28px;background:#fff;margin:5px 0;border-radius:3px}
+    nav ul{display:flex;gap:10px;list-style:none}
+    nav a{color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;opacity:.95}
+    nav a.active, nav a:hover{background:rgba(255,255,255,0.08)}
+    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.04);margin-bottom:14px}
+    h1,h2{color:var(--primary);margin-bottom:10px}
+    .dashboard-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+    .stat-card{padding:14px;border-radius:8px;background:#fff;text-align:center}
+    .stat-value{font-size:20px;font-weight:700;color:var(--secondary)}
+    .stat-label{font-size:13px;color:#666}
+    .section{display:none}
+    .section.active{display:block}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#fafafa}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--secondary);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-warning{background:var(--warning);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .form-group{margin-bottom:10px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;max-height:260px;overflow:auto;padding:8px;border:1px solid #eee;border-radius:8px;background:#fff}
+    .product-item{padding:8px;border-radius:8px;border:1px solid #ddd;text-align:center;cursor:pointer}
+    .product-item.selected{background:#e8f5e8;border-color:var(--success)}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;padding:12px}
+    .modal .modal-content{background:#fff;width:100%;max-width:720px;border-radius:10px;padding:16px;max-height:90vh;overflow:auto}
+    .hidden{display:none !important}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+    .category-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .category-btn{padding:6px 10px;border-radius:999px;border:1px solid #ddd;background:#f7f7f7;cursor:pointer}
+    .category-btn.active{background:var(--secondary);color:#fff;border-color:var(--secondary)}
+    .action-buttons{display:flex;gap:8px;flex-wrap:wrap}
+    @media (max-width:800px){
+        .menu-toggle{display:block}
+        nav ul{display:none;flex-direction:column;background:transparent;margin-top:10px}
+        nav ul.show{display:flex}
+        .header-content{flex-direction:column;align-items:flex-start}
+    }
+</style>
+</head>
+<body>
+<header>
+    <div class="container header-content">
+        <div class="logo">Coiote BBQ — Sistema</div>
+        <div class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+            <span></span><span></span><span></span>
+        </div>
+        <nav>
+            <ul id="navMenu">
+                <li><a href="#" class="nav-link active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-section="comandas">Comandas</a></li>
+                <li><a href="#" class="nav-link" data-section="produtos">Produtos</a></li>
+                <li><a href="#" class="nav-link" data-section="relatorios">Relatórios</a></li>
+                <li><a href="#" class="nav-link" data-section="notas-fiscais">Notas Fiscais</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<div class="container" style="padding-top:18px;">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="section active">
+        <h1>Dashboard</h1>
+
+        <div class="card">
+            <h2>Filtros</h2>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div style="flex:1" class="form-group">
+                    <label>Produto</label>
+                    <select id="filtro-produto"><option value="">Todos os produtos</option></select>
+                </div>
+                <div style="flex:1" class="form-group">
+                    <label>Categoria</label>
+                    <select id="filtro-categoria"><option value="">Todas</option></select>
+                </div>
+                <div style="width:160px" class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" id="filtro-data-inicio"/>
+                </div>
+                <div style="width:160px" class="form-group">
+                    <label>Data Fim</label>
+                    <input type="date" id="filtro-data-fim"/>
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                    <button class="btn btn-primary" id="aplicar-filtros">Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-vendas">R$ 0,00</div>
+                <div class="stat-label">Total em Vendas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-comandas">0</div>
+                <div class="stat-label">Comandas Ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-produtos">0</div>
+                <div class="stat-label">Produtos Cadastrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="vendas-hoje">0</div>
+                <div class="stat-label">Vendas Hoje</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Comandas Ativas</h2>
+            <div id="comandas-lista-dashboard"></div>
+        </div>
+
+        <div class="card">
+            <h2>Produtos Mais Vendidos</h2>
+            <table><thead><tr><th>Produto</th><th>Qtd</th><th>Total R$</th></tr></thead>
+            <tbody id="produtos-mais-vendidos"></tbody></table>
+        </div>
+    </section>
+
+    <!-- COMANDAS -->
+    <section id="comandas" class="section">
+        <h1>Gerenciar Comandas</h1>
+
+        <div class="card">
+            <div id="comanda-success" class="alert hidden" style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+            <div id="comanda-error" class="alert hidden" style="background:#ffe6e6;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+
+            <div class="form-group">
+                <label>Nome do Cliente</label>
+                <input id="cliente" placeholder="Nome do cliente"/>
+            </div>
+            <button class="btn btn-primary" id="criar-comanda">Criar Nova Comanda</button>
+        </div>
+
+        <div class="card">
+            <h2>Comandas Ativas</h2>
+            <div id="comandas-lista"></div>
+        </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section id="produtos" class="section">
+        <h1>Gerenciar Produtos</h1>
+
+        <div class="card">
+            <div id="produto-success" class="alert hidden" style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+            <div id="produto-error" class="alert hidden" style="background:#ffe6e6;padding:10px;border-radius:8px;margin-bottom:10px"></div>
+
+            <div class="form-group">
+                <label>Nome do Produto</label>
+                <input id="nome-produto" placeholder="Nome do produto"/>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="categoria">
+                    <option value="">Selecione</option>
+                    <option>Espeto</option>
+                    <option>Copos</option>
+                    <option>Bebidas</option>
+                    <option>Facas</option>
+                    <option>Itens para Churrasco</option>
+                    <option>Espeto Congelado</option>
+                </select>
+            </div>
+            <div class="form-row" style="display:flex;gap:12px">
+                <div style="flex:1" class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" id="preco" min="0" step="0.01"/>
+                </div>
+                <div style="flex:1" class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" id="adicionar-produto">Adicionar Produto</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Produtos Cadastrados</h2>
+            <table><thead><tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr></thead>
+            <tbody id="lista-produtos"></tbody></table>
+        </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="section">
+        <h1>Relatórios</h1>
+        <div class="card">
+            <h2>Vendas Registradas</h2>
+            <table><thead><tr><th>Data</th><th>Comanda</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead>
+            <tbody id="relatorio-vendas"></tbody></table>
+        </div>
+    </section>
+
+    <!-- NOTAS FISCAIS -->
+    <section id="notas-fiscais" class="section">
+        <h1>Notas Fiscais</h1>
+        <div class="card" id="lista-notas-fiscais"></div>
+    </section>
+
+</div>
+
+<!-- MODAL COMANDA -->
+<div id="modal-comanda" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3>Adicionar itens à comanda</h3>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-success" id="fechar-comanda-btn">Fechar Comanda</button>
+                <button class="btn btn-primary" id="salvar-fechar-comanda">Salvar</button>
+                <button class="btn" id="fechar-modal-comanda">X</button>
+            </div>
+        </div>
+
+        <div class="category-filter">
+            <label>Filtrar por categoria</label>
+            <div class="category-buttons" id="category-buttons"></div>
+        </div>
+
+        <div class="product-grid" id="product-grid"></div>
+
+        <div style="display:flex;gap:10px;margin-top:10px">
+            <div style="width:120px" class="form-group">
+                <label>Quantidade</label>
+                <input type="number" id="quantidade" min="1" value="1"/>
+            </div>
+            <div style="flex:1" class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" id="adicionar-item-comanda">Adicionar à Comanda</button>
+            </div>
+        </div>
+
+        <h4 style="margin-top:12px">Itens na comanda</h4>
+        <div id="itens-comanda-modal"></div>
+        <div style="text-align:right;font-weight:700;margin-top:10px" id="total-comanda-modal">Total: R$ 0,00</div>
+    </div>
+</div>
+
+<!-- MODAL PAGAMENTO (simples) -->
+<div id="modal-pagamento" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3>Forma de Pagamento</h3>
+            <button class="close-btn" id="close-modal-pagamento">X</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <div class="payment-option" data-payment="dinheiro">Dinheiro</div>
+            <div class="payment-option" data-payment="pix">PIX</div>
+            <div class="payment-option" data-payment="debito">Débito</div>
+            <div class="payment-option" data-payment="credito">Crédito</div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-success" id="confirmar-pagamento">Confirmar</button>
+            <button class="btn btn-warning" id="cancelar-pagamento">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NOTA FISCAL -->
+<div id="modal-nota-fiscal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>Nota Fiscal</h3>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-success" id="download-nota">Baixar Nota</button>
+                <button class="close-btn" id="close-modal-nota">X</button>
+            </div>
+        </div>
+        <div id="conteudo-nota-fiscal"></div>
+    </div>
+</div>
+
+<script>
+/* ================== Dados de exemplo (inseridos se não existirem) ================== */
+(function seedSampleData() {
+    if (!localStorage.getItem('produtos')) {
+        const produtosExemplo = [
+            { id: 1, nome: 'Espeto de Coração', categoria: 'Espeto', preco: 12.50, descricao: 'Espeto grelhado' },
+            { id: 2, nome: 'Espeto de Frango', categoria: 'Espeto', preco: 10.00, descricao: 'Espeto temperado' },
+            { id: 3, nome: 'Refrigerante 350ml', categoria: 'Bebidas', preco: 6.50, descricao: 'Lata' },
+            { id: 4, nome: 'Copo Descartável', categoria: 'Copos', preco: 1.00, descricao: 'Copo 300ml' },
+            { id: 5, nome: 'Espeto Congelado 10un', categoria: 'Espeto Congelado', preco: 25.00, descricao: 'Pacote 10 unidades' }
+        ];
+        localStorage.setItem('produtos', JSON.stringify(produtosExemplo));
+    }
+
+    if (!localStorage.getItem('comandas')) {
+        const comandasExemplo = [
+            {
+                id: 1001,
+                cliente: 'João',
+                itens: [
+                    { id: 1, nome: 'Espeto de Coração', preco: 12.50, quantidade: 2 },
+                    { id: 3, nome: 'Refrigerante 350ml', preco: 6.50, quantidade: 1 }
+                ],
+                dataAbertura: new Date().toISOString(),
+                status: 'ativa'
+            }
+        ];
+        localStorage.setItem('comandas', JSON.stringify(comandasExemplo));
+        localStorage.setItem('ultimoIdComanda', '1001');
+    }
+
+    if (!localStorage.getItem('vendas')) {
+        localStorage.setItem('vendas', JSON.stringify([]));
+    }
+})();
+/* ================== Fim seed ================== */
+
+/* ----------------- Variáveis globais ----------------- */
+let produtoSelecionado = null;
+let categoriaAtual = '';
+let comandaAtual = null;
+let formaPagamento = null;
+let numeroParcelas = 1;
+
+/* ----------------- Navegação ----------------- */
+function setupNavigation(){
+    document.querySelectorAll('.nav-link').forEach(link=>{
+        link.addEventListener('click', function(e){
+            e.preventDefault();
+            document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+            this.classList.add('active');
+            const sectionId = this.dataset.section;
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+            const target = document.getElementById(sectionId);
+            if (target) target.classList.add('active');
+            // atualizações por seção
+            if (sectionId==='dashboard') atualizarDashboard();
+            if (sectionId==='produtos') carregarProdutos();
+            if (sectionId==='comandas') carregarComandas();
+            if (sectionId==='relatorios') carregarRelatorios();
+            if (sectionId==='notas-fiscais') carregarNotasFiscais();
+            // fechar menu mobile
+            document.getElementById('navMenu').classList.remove('show');
+        });
+    });
+    const toggle = document.getElementById('menuToggle');
+    if (toggle) toggle.addEventListener('click', ()=> document.getElementById('navMenu').classList.toggle('show'));
+}
+setupNavigation();
+
+/* ----------------- Produtos ----------------- */
+function carregarProdutos(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const tbody = document.getElementById('lista-produtos');
+    tbody.innerHTML = '';
+    if (!produtos.length){
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum produto cadastrado</td></tr>';
+        document.getElementById('total-produtos').textContent = 0;
+        return;
+    }
+    produtos.forEach((p,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.nome}</td><td>${p.categoria}</td><td>R$ ${p.preco.toFixed(2)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning" onclick="editarProduto(${idx})">Editar</button>
+                    <button class="btn btn-danger" onclick="excluirProduto(${idx})">Excluir</button>
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('total-produtos').textContent = produtos.length;
+    carregarFiltrosProdutos();
+}
+
+function adicionarProduto(){
+    const nome = document.getElementById('nome-produto').value.trim();
+    const categoria = document.getElementById('categoria').value;
+    const preco = parseFloat(document.getElementById('preco').value);
+    if (!nome || !categoria || isNaN(preco)) return mostrarAlerta('produto-error','Preencha nome, categoria e preço.');
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const novo = { id: Date.now(), nome, categoria, preco, descricao: ''};
+    produtos.push(novo);
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    mostrarAlerta('produto-success','Produto adicionado');
+    document.getElementById('nome-produto').value=''; document.getElementById('preco').value='';
+    carregarProdutos();
+    atualizarDashboard();
+}
+document.getElementById('adicionar-produto').addEventListener('click', adicionarProduto);
+
+function editarProduto(index){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const p = produtos[index];
+    if (!p) return;
+    document.getElementById('nome-produto').value = p.nome;
+    document.getElementById('categoria').value = p.categoria;
+    document.getElementById('preco').value = p.preco;
+    // when saving, we'll replace first match by id — simple approach for demo:
+    const salvarBtn = document.getElementById('adicionar-produto');
+    salvarBtn.textContent = 'Salvar Alterações';
+    salvarBtn.onclick = function(){
+        p.nome = document.getElementById('nome-produto').value;
+        p.categoria = document.getElementById('categoria').value;
+        p.preco = parseFloat(document.getElementById('preco').value) || p.preco;
+        produtos[index] = p;
+        localStorage.setItem('produtos', JSON.stringify(produtos));
+        salvarBtn.textContent = 'Adicionar Produto';
+        salvarBtn.onclick = adicionarProduto;
+        document.getElementById('nome-produto').value=''; document.getElementById('preco').value='';
+        mostrarAlerta('produto-success','Produto atualizado');
+        carregarProdutos();
+        atualizarDashboard();
+    };
+}
+
+function excluirProduto(index){
+    if (!confirm('Excluir produto?')) return;
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    produtos.splice(index,1);
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    carregarProdutos();
+    atualizarDashboard();
+}
+
+/* ----------------- Filtros & UI Auxiliares ----------------- */
+function carregarFiltrosProdutos(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const filtroProduto = document.getElementById('filtro-produto');
+    const filtroCategoria = document.getElementById('filtro-categoria');
+    // produto
+    filtroProduto.innerHTML = '<option value="">Todos os produtos</option>';
+    produtos.forEach(p => {
+        const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.nome; filtroProduto.appendChild(opt);
+    });
+    // categorias
+    const categorias = Array.from(new Set(produtos.map(p=>p.categoria))).filter(Boolean);
+    filtroCategoria.innerHTML = '<option value="">Todas as categorias</option>';
+    categorias.forEach(c => {
+        const opt = document.createElement('option'); opt.value = c; opt.textContent = c; filtroCategoria.appendChild(opt);
+    });
+}
+
+/* ----------------- Comandas ----------------- */
+function carregarComandas(){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const lista = document.getElementById('comandas-lista');
+    lista.innerHTML = '';
+    if (!comandas.length) { lista.innerHTML = '<p>Nenhuma comanda ativa</p>'; return; }
+    comandas.forEach((c, idx) => {
+        const total = (c.itens||[]).reduce((s,i)=>s + (i.preco * i.quantidade),0);
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `<h3>Comanda #${c.id} - ${c.cliente||'Consumidor'}</h3>
+                         <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+                         <p><strong>Itens:</strong> ${c.itens.length}</p>
+                         <div style="display:flex;gap:8px;margin-top:8px">
+                            <button class="btn btn-primary" onclick="abrirModalComanda(${idx})">Ver/Editar</button>
+                            <button class="btn btn-success" onclick="iniciarFechamentoComanda(${idx})">Fechar Comanda</button>
+                         </div>`;
+        lista.appendChild(div);
+    });
+    atualizarDashboard();
+}
+
+function criarComanda(){
+    const cliente = document.getElementById('cliente').value.trim();
+    if (!cliente) return mostrarAlerta('comanda-error','Informe o nome do cliente');
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    let ultimo = parseInt(localStorage.getItem('ultimoIdComanda')||'1000',10);
+    ultimo++;
+    const nova = { id: ultimo, cliente, itens: [], dataAbertura: new Date().toISOString(), status: 'ativa' };
+    comandas.push(nova);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    localStorage.setItem('ultimoIdComanda', String(ultimo));
+    document.getElementById('cliente').value='';
+    mostrarAlerta('comanda-success','Comanda criada');
+    carregarComandas();
+}
+document.getElementById('criar-comanda').addEventListener('click', criarComanda);
+
+/* ----------------- Modal Comanda / Produtos no Modal ----------------- */
+function abrirModalComanda(index){
+    const modal = document.getElementById('modal-comanda'); modal.style.display='flex';
+    comandaAtual = index;
+    produtoSelecionado = null; categoriaAtual = '';
+    criarBotoesCategoria();
+    carregarProdutosModal();
+    atualizarItensComandaModal(index);
+}
+
+document.getElementById('fechar-modal-comanda').addEventListener('click', ()=>{
+    document.getElementById('modal-comanda').style.display='none';
+});
+
+function criarBotoesCategoria(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const container = document.getElementById('category-buttons'); container.innerHTML='';
+    const btnTodos = document.createElement('button'); btnTodos.className='category-btn active'; btnTodos.textContent='Todos';
+    btnTodos.onclick = ()=>{ filtrarProdutosPorCategoria(''); };
+    container.appendChild(btnTodos);
+    const categorias = Array.from(new Set(produtos.map(p=>p.categoria))).filter(Boolean);
+    categorias.forEach(c=>{
+        const btn = document.createElement('button'); btn.className='category-btn'; btn.textContent = c;
+        btn.onclick = ()=> filtrarProdutosPorCategoria(c);
+        container.appendChild(btn);
+    });
+}
+
+function filtrarProdutosPorCategoria(cat){
+    categoriaAtual = cat;
+    document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+    Array.from(document.querySelectorAll('.category-btn')).find(b=> (cat==='' && b.textContent==='Todos') || b.textContent===cat ).classList.add('active');
+    carregarProdutosModal();
+}
+
+function carregarProdutosModal(){
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    const container = document.getElementById('product-grid'); container.innerHTML='';
+    let lista = produtos;
+    if (categoriaAtual) lista = produtos.filter(p=>p.categoria===categoriaAtual);
+    if (!lista.length) { container.innerHTML='<p>Nenhum produto</p>'; return; }
+    lista.forEach(p=>{
+        const div = document.createElement('div'); div.className='product-item';
+        div.innerHTML = `<div style="font-weight:700">${p.nome}</div><div style="margin-top:6px;color:var(--success)">R$ ${p.preco.toFixed(2)}</div>`;
+        div.onclick = ()=>{
+            document.querySelectorAll('.product-item').forEach(x=>x.classList.remove('selected'));
+            div.classList.add('selected'); produtoSelecionado = p;
+        };
+        container.appendChild(div);
+    });
+}
+
+function adicionarItemComanda(index){
+    if (!produtoSelecionado) return alert('Selecione um produto');
+    const quantidade = parseInt(document.getElementById('quantidade').value,10) || 1;
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[index];
+    if (!comanda) return alert('Comanda não encontrada');
+    const existente = comanda.itens.find(i=>i.id===produtoSelecionado.id);
+    if (existente) existente.quantidade += quantidade;
+    else comanda.itens.push({ id: produtoSelecionado.id, nome: produtoSelecionado.nome, preco: produtoSelecionado.preco, quantidade });
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(index);
+    carregarComandas();
+    atualizarDashboard();
+}
+document.getElementById('adicionar-item-comanda').addEventListener('click', ()=> adicionarItemComanda(comandaAtual));
+
+function atualizarItensComandaModal(index){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[index];
+    const container = document.getElementById('itens-comanda-modal');
+    const totalEl = document.getElementById('total-comanda-modal');
+    container.innerHTML = '';
+    if (!comanda || !comanda.itens.length){ container.innerHTML = '<p>Nenhum item</p>'; totalEl.textContent='Total: R$ 0,00'; return; }
+    let total = 0;
+    comanda.itens.forEach((it, idx)=>{
+        const itemTotal = it.preco * it.quantidade; total += itemTotal;
+        const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.padding='8px 0';
+        div.innerHTML = `<div><strong>${it.nome}</strong><div style="font-size:12px;color:#666">R$ ${it.preco.toFixed(2)} • Qtde: ${it.quantidade}</div></div>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-warning" onclick="diminuirQuantidade(${index},${idx})">-</button>
+                <button class="btn btn-danger" onclick="removerItemComanda(${index},${idx})">Remover</button>
+            </div>`;
+        container.appendChild(div);
+    });
+    totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
+}
+
+function diminuirQuantidade(idxCom, idxItem){
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
+    if (!com) return; const item = com.itens[idxItem]; if (!item) return;
+    item.quantidade = Math.max(1, item.quantidade - 1);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
+}
+function removerItemComanda(idxCom, idxItem){
+    if (!confirm('Remover item?')) return;
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[]; const com = comandas[idxCom];
+    if (!com) return;
+    com.itens.splice(idxItem,1); localStorage.setItem('comandas', JSON.stringify(comandas));
+    atualizarItensComandaModal(idxCom); carregarComandas(); atualizarDashboard();
+}
+
+/* ----------------- Pagamento / Fechar comanda ----------------- */
+let vendaAtualParaDownload = null;
+
+function abrirModalPagamento(){
+    document.getElementById('modal-pagamento').style.display='flex';
+}
+
+function iniciarFechamentoComanda(index){
+    comandaAtual = index;
+    abrirModalPagamento();
+}
+
+document.getElementById('fechar-comanda-btn').addEventListener('click', ()=>{
+    if (comandaAtual === null) return alert('Nenhuma comanda selecionada');
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[comandaAtual];
+    if (!comanda || !comanda.itens.length) return alert('Adicione itens antes de fechar a comanda');
+    abrirModalPagamento();
+});
+
+document.getElementById('salvar-fechar-comanda').addEventListener('click', ()=>{
+    document.getElementById('modal-comanda').style.display='none';
+});
+
+document.getElementById('confirmar-pagamento').addEventListener('click', fecharComanda);
+document.getElementById('cancelar-pagamento').addEventListener('click', ()=> document.getElementById('modal-pagamento').style.display='none');
+document.getElementById('close-modal-pagamento').addEventListener('click', ()=> document.getElementById('modal-pagamento').style.display='none');
+
+function fecharComanda(){
+    if (comandaAtual===null) return alert('Abra a comanda antes de fechar');
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const comanda = comandas[comandaAtual];
+    if (!comanda) return alert('Comanda inválida');
+    if (!comanda.itens || !comanda.itens.length) return alert('Adicione itens antes de fechar');
+    const total = (comanda.itens||[]).reduce((s,i)=>s + i.preco * i.quantidade, 0);
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const venda = { comandaId: comanda.id, cliente: comanda.cliente, itens: comanda.itens, total, desconto:0, totalFinal: total, formaPagamento: formaPagamento||'dinheiro', data: new Date().toISOString() };
+    vendas.push(venda);
+    localStorage.setItem('vendas', JSON.stringify(vendas));
+    comandas.splice(comandaAtual,1);
+    localStorage.setItem('comandas', JSON.stringify(comandas));
+    document.getElementById('modal-pagamento').style.display='none';
+    document.getElementById('modal-comanda').style.display='none';
+    gerarNotaFiscal(venda);
+    carregarComandas(); carregarRelatorios(); atualizarDashboard(); carregarNotasFiscais();
+    comandaAtual = null; formaPagamento = null;
+}
+
+/* ----------------- Nota fiscal ----------------- */
+function gerarNotaFiscal(venda){
+    vendaAtualParaDownload = venda;
+    const modal = document.getElementById('modal-nota-fiscal'); modal.style.display='flex';
+    const conteudo = document.getElementById('conteudo-nota-fiscal');
+    const data = new Date(venda.data).toLocaleString();
+    const formaPgto = venda.formaPagamento ? venda.formaPagamento.charAt(0).toUpperCase() + venda.formaPagamento.slice(1) : 'Dinheiro';
+    let html = `<div style="padding:8px" id="nota-fiscal-content">
+        <div style="text-align:center;margin-bottom:12px">
+            <h3 style="margin:0">COIOTE BBQ</h3>
+            <p style="margin:4px 0;font-size:12px">NOTA FISCAL</p>
+        </div>
+        <p><strong>Data:</strong> ${data}</p>
+        <p><strong>Comanda:</strong> #${venda.comandaId}</p>
+        <p><strong>Cliente:</strong> ${venda.cliente||'Consumidor'}</p>
+        <p><strong>Pagamento:</strong> ${formaPgto}</p>
+        <hr style="margin:10px 0">
+        <div style="font-weight:600;margin-bottom:8px">ITENS:</div>`;
+    venda.itens.forEach(i => { 
+        html += `<div style="display:flex;justify-content:space-between;padding:4px 0">
+            <div>${i.quantidade}x ${i.nome}</div>
+            <div>R$ ${(i.preco*i.quantidade).toFixed(2)}</div>
+        </div>`;
+    });
+    html += `<hr style="margin:10px 0">
+        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:16px">
+            <div>TOTAL</div>
+            <div>R$ ${venda.totalFinal.toFixed(2)}</div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:12px;color:#666">
+            Obrigado pela preferência!
+        </div>
+    </div>`;
+    conteudo.innerHTML = html;
+}
+
+function downloadNotaFiscal(){
+    if (!vendaAtualParaDownload) return alert('Nenhuma nota disponível para download');
+    const venda = vendaAtualParaDownload;
+    const data = new Date(venda.data).toLocaleString();
+    const formaPgto = venda.formaPagamento ? venda.formaPagamento.charAt(0).toUpperCase() + venda.formaPagamento.slice(1) : 'Dinheiro';
+    
+    let texto = '========================================\n';
+    texto += '           COIOTE BBQ\n';
+    texto += '           NOTA FISCAL\n';
+    texto += '========================================\n\n';
+    texto += `Data: ${data}\n`;
+    texto += `Comanda: #${venda.comandaId}\n`;
+    texto += `Cliente: ${venda.cliente || 'Consumidor'}\n`;
+    texto += `Forma de Pagamento: ${formaPgto}\n\n`;
+    texto += '----------------------------------------\n';
+    texto += 'ITENS:\n';
+    texto += '----------------------------------------\n';
+    
+    venda.itens.forEach(i => {
+        const itemTotal = (i.preco * i.quantidade).toFixed(2);
+        texto += `${i.quantidade}x ${i.nome}\n`;
+        texto += `   R$ ${i.preco.toFixed(2)} cada = R$ ${itemTotal}\n`;
+    });
+    
+    texto += '----------------------------------------\n';
+    texto += `TOTAL: R$ ${venda.totalFinal.toFixed(2)}\n`;
+    texto += '========================================\n\n';
+    texto += '     Obrigado pela preferência!\n';
+    texto += '========================================\n';
+    
+    const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nota_fiscal_${venda.comandaId}_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+document.getElementById('download-nota').addEventListener('click', downloadNotaFiscal);
+document.getElementById('close-modal-nota').addEventListener('click', ()=> document.getElementById('modal-nota-fiscal').style.display='none');
+
+/* ----------------- Relatórios / Notas ----------------- */
+function carregarRelatorios(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const tbody = document.getElementById('relatorio-vendas'); tbody.innerHTML='';
+    if (!vendas.length){ tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma venda</td></tr>'; return; }
+    vendas.forEach((v,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(v.data).toLocaleString()}</td><td>${v.comandaId}</td><td>${v.cliente||'Consumidor'}</td><td>R$ ${v.totalFinal.toFixed(2)}</td>
+            <td><button class="btn btn-primary" onclick="gerarNotaFiscalIndex(${idx})">Ver</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+function gerarNotaFiscalIndex(index){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[]; const v = vendas[index]; if (v) gerarNotaFiscal(v);
+}
+function carregarNotasFiscais(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const container = document.getElementById('lista-notas-fiscais'); container.innerHTML='';
+    if (!vendas.length) { container.innerHTML = '<p>Nenhuma nota gerada</p>'; return; }
+    vendas.forEach(v=>{
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between"><div>Comanda #${v.comandaId} - ${v.cliente}</div><div>R$ ${v.totalFinal.toFixed(2)}</div></div>`;
+        container.appendChild(div);
+    });
+}
+
+/* ----------------- Dashboard update ----------------- */
+function atualizarDashboard(){
+    const vendas = JSON.parse(localStorage.getItem('vendas'))||[];
+    const comandas = JSON.parse(localStorage.getItem('comandas'))||[];
+    const produtos = JSON.parse(localStorage.getItem('produtos'))||[];
+    // total vendas
+    const totalVendido = vendas.reduce((s,v)=>s + (v.totalFinal||v.total||0),0);
+    document.getElementById('total-vendas').textContent = `R$ ${totalVendido.toFixed(2)}`;
+    // total comandas
+    document.getElementById('total-comandas').textContent = comandas.length;
+    // total produtos
+    document.getElementById('total-produtos').textContent = produtos.length;
+    // vendas hoje (simples)
+    const hoje = new Date().toLocaleDateString();
+    const vendasHoje = vendas.filter(v => new Date(v.data).toLocaleDateString() === hoje).length;
+    document.getElementById('vendas-hoje').textContent = vendasHoje;
+    // carregar comandas na dashboard
+    const listaDash = document.getElementById('comandas-lista-dashboard'); listaDash.innerHTML='';
+    if (!comandas.length) listaDash.innerHTML = '<p>Nenhuma comanda ativa</p>';
+    comandas.forEach((c, idx) => {
+        const total = (c.itens||[]).reduce((s,it)=> s + it.preco*it.quantidade,0);
+        const el = document.createElement('div'); el.className='card'; el.style.marginBottom='8px';
+        el.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>#${c.id}</strong> ${c.cliente||''}</div><div>R$ ${total.toFixed(2)}</div></div>
+                        <div style="margin-top:6px"><button class="btn btn-primary" onclick="abrirModalComanda(${idx})">Abrir</button></div>`;
+        listaDash.appendChild(el);
+    });
+    // produtos mais vendidos (simples: acumula por nome nas vendas)
+    const mapa = {};
+    vendas.forEach(v=> v.itens.forEach(i=> { mapa[i.nome] = (mapa[i.nome]||0) + i.quantidade; }));
+    const arr = Object.entries(mapa).map(([nome,qtd])=>({nome,qtd}));
+    arr.sort((a,b)=>b.qtd-a.qtd);
+    const tbody = document.getElementById('produtos-mais-vendidos'); tbody.innerHTML='';
+    if (!arr.length) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Sem vendas ainda</td></tr>';
+    arr.slice(0,6).forEach(item=>{
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${item.nome}</td><td>${item.qtd}</td><td>R$ ${(item.qtd * ( (JSON.parse(localStorage.getItem('produtos')||'[]').find(p=>p.nome===item.nome)||{preco:0}).preco )).toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+/* ----------------- Utilitários ----------------- */
+function mostrarAlerta(id, msg){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg; el.classList.remove('hidden');
+    setTimeout(()=> el.classList.add('hidden'), 2500);
+}
+
+/* ----------------- Inicialização ----------------- */
+(function init(){
+    carregarProdutos();
+    carregarFiltrosProdutos();
+    carregarComandas();
+    carregarRelatorios();
+    carregarNotasFiscais();
+    atualizarDashboard();
+
+    // selecionar forma pagamento UI
+    document.querySelectorAll('.payment-option').forEach(el=>{
+        el.style.cursor='pointer';
+        el.addEventListener('click', ()=>{
+            document.querySelectorAll('.payment-option').forEach(x=>x.style.border='1px solid #ddd');
+            el.style.border = '2px solid var(--secondary)';
+            formaPagamento = el.dataset.payment;
+        });
+    });
+
+    // aplicar filtros (simples: atualiza dashboard)
+    document.getElementById('aplicar-filtros').addEventListener('click', ()=>{
+        filtros = {
+            produto: document.getElementById('filtro-produto').value,
+            categoria: document.getElementById('filtro-categoria').value,
+            dataInicio: document.getElementById('filtro-data-inicio').value,
+            dataFim: document.getElementById('filtro-data-fim').value
+        };
+        atualizarDashboard();
+    });
+
+})();
+</script>
+</body>
+</html>
